@@ -3,9 +3,11 @@ import random
 import re
 from datetime import datetime
 
+import aiohttp
+import pytz
 from django.core.management.base import BaseCommand
 
-import aiohttp
+from ...models import Contract, Contractor, Document, Entity, Service
 
 BASE_URL = "https://consultacontratos.ocpr.gov.pr"
 BASE_CONTRACT_URL = f"{BASE_URL}/contract"
@@ -28,8 +30,11 @@ USER_AGENTS = [
 
 
 def parse_date(value):
+    if not value:
+        return None
+
     ms = int(re.search("\d+", value).group())
-    return datetime.utcfromtimestamp(ms // 1000)
+    return datetime.utcfromtimestamp(ms // 1000).replace(tzinfo=pytz.UTC)
 
 
 def strip_whitespace(value):
@@ -48,7 +53,7 @@ async def expand_contract(session, contract):
         "effective_date_to": parse_date(contract["EffectiveDateTo"]),
         "service": contract["Service"],
         "service_group": contract["ServiceGroup"],
-        "cancellation_date": contract["CancellationDate"],
+        "cancellation_date": parse_date(contract["CancellationDate"]),
         "amount_to_pay": contract["AmountToPay"],
         "has_amendments": contract["HasAmendments"],
         "document_id": contract["DocumentWithoutSocialSecurityId"],
@@ -74,12 +79,25 @@ async def expand_contract(session, contract):
 
 
 async def get_contractors(session, contract_id):
+    contractors = []
+
     async with session.post(
         f"{BASE_CONTRACTOR_URL}/findbycontractid",
         json={"contractId": contract_id},
         headers={"user-agent": random.choice(USER_AGENTS)},
     ) as response:
-        return await response.json()
+        response_json = await response.json()
+
+        for contractor in response_json:
+            contractors.append(
+                {
+                    "contractor_id": contractor["ContractorId"],
+                    "entity_id": contractor["EntityId"],
+                    "name": contractor["Name"],
+                }
+            )
+
+    return contractors
 
 
 async def get_amendments(session, contract_number, entity_id):
@@ -98,42 +116,76 @@ async def get_amendments(session, contract_number, entity_id):
     return results
 
 
-async def search(session, start=0, length=10):
-    tasks = []
-
+async def search(session, offset=0, limit=10):
     async with session.post(
         f"{BASE_CONTRACT_URL}/search",
         json={
-            "start": start,
-            "length": length,
+            "start": offset,
+            "length": limit,
             "order": [{"column": 3, "dir": "desc"}],
         },
         headers={"user-agent": random.choice(USER_AGENTS)},
     ) as response:
+        tasks = []
         response_json = await response.json()
 
         for result in response_json["data"]:
-            task = asyncio.create_task(expand_contract(session, result))
-            tasks.append(task)
+            tasks.append(expand_contract(session, result))
 
-    return tasks
+        return tasks
 
 
-async def scrape():
-    async with aiohttp.ClientSession() as session:
-        tasks = []
-        start = 0
+def update_contract(result, parent=None):
+    entity, _ = Entity.objects.get_or_create(
+        source_id=result["entity_id"], defaults={"name": result["entity_name"]}
+    )
 
-        while start < 100:
-            search_tasks = await search(session, start=start, length=10)
+    service, _ = Service.objects.get_or_create(
+        name=result["service"], group=result["service_group"]
+    )
 
-            if not search_tasks:
-                break
+    contract_data = {
+        "entity": entity,
+        "number": result["contract_number"],
+        "amendment": result["amendment"],
+        "date_of_grant": result["date_of_grant"],
+        "effective_date_from": result["effective_date_from"],
+        "effective_date_to": result["effective_date_to"],
+        "service": service,
+        "cancellation_date": result["cancellation_date"],
+        "amount_to_pay": result["amount_to_pay"],
+        "has_amendments": result["has_amendments"],
+        "exempt_id": result["exempt_id"],
+        "parent": parent,
+    }
 
-            tasks.extend(search_tasks)
-            start += 10
+    if result["document_id"]:
+        document, _ = Document.objects.get_or_create(
+            source_id=result["document_id"],
+            defaults={"source_url": result["document_url"]},
+        )
 
-        return await asyncio.gather(*tasks)
+        contract_data["document"] = document
+
+    contract, _ = Contract.objects.update_or_create(
+        source_id=result["contract_id"], defaults=contract_data
+    )
+
+    for contractor_result in result["contractors"]:
+        contractor, _ = Contractor.objects.get_or_create(
+            source_id=contractor_result["contractor_id"],
+            defaults={
+                "name": contractor_result["name"],
+                "entity_id": contractor_result["entity_id"],
+            },
+        )
+
+        contract.contractors.add(contractor)
+
+    for amendment_result in result["amendments"]:
+        update_contract(amendment_result, contract)
+
+    return contract
 
 
 class Command(BaseCommand):
@@ -141,5 +193,23 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         loop = asyncio.get_event_loop()
-        results = loop.run_until_complete(scrape())
-        print(results)
+        loop.run_until_complete(self._scrape())
+
+    async def _scrape(self):
+        async with aiohttp.ClientSession() as session:
+            offset = 0
+            limit = 1000
+            total_records = 887865
+            tasks = []
+
+            while offset < total_records:
+                self.stdout.write(f"==> {offset} / {total_records}")
+                search_tasks = await search(session, offset=offset, limit=limit)
+                tasks.extend(search_tasks)
+                offset += limit
+
+            results = await asyncio.gather(*tasks)
+
+            for result in results:
+                contract = update_contract(result, parent=None)
+                self.stdout.write(f"=> {contract}")

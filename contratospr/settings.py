@@ -1,5 +1,5 @@
 """
-Django settings for contratos project.
+Django settings for contratospr project.
 
 For more information on this file, see
 https://docs.djangoproject.com/en/2.1/topics/settings/
@@ -35,8 +35,8 @@ class Common(Configuration):
         "django.contrib.staticfiles",
         "django_extensions",
         "debug_toolbar",
-        "contratos.users",
-        "contratos.scraper",
+        "contratospr.users",
+        "contratospr.contracts",
     ]
 
     MIDDLEWARE = [
@@ -50,7 +50,7 @@ class Common(Configuration):
         "django.middleware.clickjacking.XFrameOptionsMiddleware",
     ]
 
-    ROOT_URLCONF = "contratos.urls"
+    ROOT_URLCONF = "contratospr.urls"
 
     TEMPLATES = [
         {
@@ -68,7 +68,7 @@ class Common(Configuration):
         }
     ]
 
-    WSGI_APPLICATION = "contratos.wsgi.application"
+    WSGI_APPLICATION = "contratospr.wsgi.application"
 
     # Database
     # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
