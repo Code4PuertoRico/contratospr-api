@@ -31,6 +31,6 @@ class DramatiqJSONEncoder(dramatiq.JSONEncoder):
         return json.dumps(data, separators=(",", ":"), cls=JSONEncoder).encode("utf-8")
 
 
-redis_broker = RedisBroker(url=settings.REDIS_URL)
+redis_broker = RedisBroker(url=settings.BROKER_URL)
 dramatiq.set_broker(redis_broker)
 dramatiq.set_encoder(DramatiqJSONEncoder())

@@ -108,7 +108,11 @@ class Common(Configuration):
 
     AUTH_USER_MODEL = "users.User"
 
-    REDIS_URL = "redis://redis:6379/0"
+    REDIS_URL = values.Value(environ_name="REDIS_URL", environ_prefix=None)
+
+    @property
+    def BROKER_URL(self):
+        return f"{self.REDIS_URL}/0"
 
 
 class Development(Common):
