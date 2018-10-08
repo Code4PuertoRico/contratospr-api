@@ -1,24 +1,26 @@
 from django.db import models
 
+from ..utils.models import BaseModel
 
-class Entity(models.Model):
+
+class Entity(BaseModel):
     name = models.CharField(max_length=255)
-    source_id = models.PositiveIntegerField()
+    source_id = models.PositiveIntegerField(unique=True)
 
     def __str__(self):
         return self.name
 
 
-class Service(models.Model):
-    name = models.CharField(max_length=255)
+class Service(BaseModel):
+    name = models.CharField(max_length=255, unique=True)
     group = models.CharField(max_length=255)
 
     def __str__(self):
         return self.name
 
 
-class Document(models.Model):
-    source_id = models.PositiveIntegerField()
+class Document(BaseModel):
+    source_id = models.PositiveIntegerField(unique=True)
     source_url = models.URLField()
     file = models.FileField(blank=True, null=True)
 
@@ -26,18 +28,18 @@ class Document(models.Model):
         return f"{self.source_id}"
 
 
-class Contractor(models.Model):
+class Contractor(BaseModel):
     name = models.CharField(max_length=255)
-    source_id = models.PositiveIntegerField()
+    source_id = models.PositiveIntegerField(unique=True)
     entity_id = models.PositiveIntegerField(blank=True, null=True)
 
     def __str__(self):
         return self.name
 
 
-class Contract(models.Model):
+class Contract(BaseModel):
     entity = models.ForeignKey("Entity", null=True, on_delete=models.SET_NULL)
-    source_id = models.PositiveIntegerField()
+    source_id = models.PositiveIntegerField(unique=True)
     number = models.CharField(max_length=255)
     amendment = models.CharField(max_length=255, blank=True, null=True)
     date_of_grant = models.DateTimeField()
