@@ -31,8 +31,8 @@ case "$1" in
     ;;
 
   "start-worker")
-    tasks_packages=$(find . -type d -name tasks | sed s':/:.:g' | sed s'/^..//' | xargs)
-    tasks_modules=$(find . -type f -name tasks.py | sed s':/:.:g' | sed s'/^..//' | sed s'/.py$//g' | xargs)
+    tasks_packages=$(find ./contratospr -type d -name tasks | sed s':/:.:g' | sed s'/^..//' | xargs)
+    tasks_modules=$(find ./contratospr -type f -name tasks.py | sed s':/:.:g' | sed s'/^..//' | sed s'/.py$//g' | xargs)
     all_modules="$tasks_packages $tasks_modules"
 
     echo "Discovered tasks modules:"
@@ -41,7 +41,7 @@ case "$1" in
     done
     echo
 
-    dramatiq --watch ./contratospr $all_modules
+    dramatiq --watch ./contratospr --processes 2 $all_modules
     ;;
 
   *)
