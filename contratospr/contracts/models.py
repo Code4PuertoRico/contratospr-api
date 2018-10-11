@@ -71,7 +71,10 @@ class Document(BaseModel):
             )
 
             response = fp.generate(
-                self.file.url, metadata=["ocr"], data={"document_id": self.pk}
+                self.file.url,
+                pages="all",
+                metadata=["ocr"],
+                data={"document_id": self.pk},
             )
 
             self.preview_data = response
