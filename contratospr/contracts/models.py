@@ -1,6 +1,23 @@
+import cgi
+from tempfile import TemporaryFile
+
+import requests
+from django.core.files import File
 from django.db import models
+from django_s3_storage.storage import S3Storage
 
 from ..utils.models import BaseModel
+
+s3_storage = S3Storage()
+
+
+def get_filename_from_content_disposition(value):
+    _, parsed_header = cgi.parse_header(value)
+    return parsed_header.get("filename", "")
+
+
+def document_file_path(instance, filename):
+    return f"documents/{instance.source_id}/{filename}"
 
 
 class Entity(BaseModel):
@@ -22,10 +39,24 @@ class Service(BaseModel):
 class Document(BaseModel):
     source_id = models.PositiveIntegerField(unique=True)
     source_url = models.URLField()
-    file = models.FileField(blank=True, null=True)
+    file = models.FileField(
+        blank=True, null=True, upload_to=document_file_path, storage=s3_storage
+    )
 
     def __str__(self):
         return f"{self.source_id}"
+
+    def download(self):
+        with TemporaryFile() as temp_file:
+            with requests.get(self.source_url, stream=True) as r:
+                for chunk in r.iter_content(chunk_size=4096):
+                    temp_file.write(chunk)
+                temp_file.seek(0)
+
+            content_disposition = r.headers.get("content-disposition", "")
+            file_name = get_filename_from_content_disposition(content_disposition)
+
+            self.file.save(file_name, File(temp_file))
 
 
 class Contractor(BaseModel):

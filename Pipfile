@@ -17,6 +17,7 @@ whitenoise = "==4.1"
 "psycopg2-binary" = "==2.7.5"
 dramatiq = {version = "*", extras = ["redis", "watch"]}
 requests = "*"
+"django-s3-storage" = "*"
 
 [requires]
 python_version = "3.7"
