@@ -2,9 +2,12 @@ import cgi
 from tempfile import TemporaryFile
 
 import requests
+from django.conf import settings
+from django.contrib.postgres.fields import JSONField
 from django.core.files import File
 from django.db import models
 from django_s3_storage.storage import S3Storage
+from filepreviews import FilePreviews
 
 from ..utils.models import BaseModel
 
@@ -43,6 +46,8 @@ class Document(BaseModel):
         blank=True, null=True, upload_to=document_file_path, storage=s3_storage
     )
 
+    preview_data = JSONField(blank=True, null=True)
+
     def __str__(self):
         return f"{self.source_id}"
 
@@ -57,6 +62,20 @@ class Document(BaseModel):
             file_name = get_filename_from_content_disposition(content_disposition)
 
             self.file.save(file_name, File(temp_file))
+
+    def generate_preview(self):
+        if self.file:
+            fp = FilePreviews(
+                api_key=settings.FILEPREVIEWS_API_KEY,
+                api_secret=settings.FILEPREVIEWS_API_SECRET,
+            )
+
+            response = fp.generate(
+                self.file.url, metadata=["ocr"], data={"document_id": self.pk}
+            )
+
+            self.preview_data = response
+            self.save(update_fields=["preview_data"])
 
 
 class Contractor(BaseModel):

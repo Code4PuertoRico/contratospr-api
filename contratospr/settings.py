@@ -115,6 +115,9 @@ class Common(Configuration):
     def BROKER_URL(self):
         return f"{self.REDIS_URL}/0"
 
+    FILEPREVIEWS_API_KEY = values.Value(environ_prefix=None)
+    FILEPREVIEWS_API_SECRET = values.Value(environ_prefix=None)
+
 
 class Development(Common):
     """

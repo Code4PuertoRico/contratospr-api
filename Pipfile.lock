@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "f327bc34c7521854c7982ec60d256c408d34204421a55c26b31ca1dd887a039b"
+            "sha256": "b9d6bb0452f34ab2d93d8e41c84f91245d10eddbef7c9137bcd86175b33bda0f"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -50,6 +50,13 @@
                 "sha256:fc323ffcaeaed0e0a02bf4d117757b98aed530d9ed4531e3e15460124c106691"
             ],
             "version": "==3.0.4"
+        },
+        "click": {
+            "hashes": [
+                "sha256:c6848c6ea265af7dc3264ab83c2671ea3777c7e433019c7be18c9cc7878ee1f2",
+                "sha256:e339ed09f25e2145314c902a870bc959adcb25653a2bd5cc1b48d9f56edf8ed8"
+            ],
+            "version": "==4.1"
         },
         "dj-database-url": {
             "hashes": [
@@ -113,6 +120,14 @@
             ],
             "index": "pypi",
             "version": "==1.3.0"
+        },
+        "filepreviews": {
+            "hashes": [
+                "sha256:2a3971758afc0d0c129d5d7082f30b06809cd77045dc27c32863fc9c54941b8b",
+                "sha256:ea186f12f4533576791401faa72c535a2f34e6b62ac72d6f53d3da28b072d527"
+            ],
+            "index": "pypi",
+            "version": "==2.0.2"
         },
         "gevent": {
             "hashes": [
