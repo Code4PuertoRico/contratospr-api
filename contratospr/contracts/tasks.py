@@ -71,6 +71,18 @@ def expand_contract(contract):
 
 @dramatiq.actor
 @transaction.atomic
+def enhance_document(document_id):
+    document = Document.objects.get(pk=document_id)
+
+    # Download document and upload to S3
+    document.download()
+
+    # Try to generate preview with FilePreviews
+    document.generate_preview()
+
+
+@dramatiq.actor
+@transaction.atomic
 def update_contract(result, parent_id=None):
     entity, _ = Entity.objects.get_or_create(
         source_id=result["entity_id"], defaults={"name": result["entity_name"]}
@@ -102,6 +114,7 @@ def update_contract(result, parent_id=None):
         )
 
         contract_data["document"] = document
+        enhance_document.send(document.pk)
 
     contract, _ = Contract.objects.update_or_create(
         source_id=result["contract_id"], defaults=contract_data
