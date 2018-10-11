@@ -96,7 +96,7 @@ def update_contract(result, parent_id=None):
     }
 
     if result["document_id"]:
-        document, _ = Document.objects.get_or_create(
+        document, _ = Document.objects.update_or_create(
             source_id=result["document_id"],
             defaults={"source_url": result["document_url"]},
         )
