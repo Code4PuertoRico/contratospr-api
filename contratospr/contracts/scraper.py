@@ -21,6 +21,16 @@ USER_AGENTS = [
 ]
 
 
+def send_document_request(contract_id):
+    response = requests.post(
+        f"{BASE_CONTRACT_URL}/senddocumentrequest",
+        json={"model": {"ContractId": contract_id, "EmailTo": "jpueblo@example.com"}},
+        headers={"user-agent": random.choice(USER_AGENTS)},
+    )
+
+    return response.json()
+
+
 def get_contractors(contract_id):
     response = requests.post(
         f"{BASE_CONTRACTOR_URL}/findbycontractid",
@@ -45,9 +55,100 @@ def get_contracts(offset, limit):
     response = requests.post(
         f"{BASE_CONTRACT_URL}/search",
         json={
+            "draw": 1,
+            "columns": [
+                {
+                    "data": None,
+                    "name": "",
+                    "searchable": False,
+                    "orderable": False,
+                    "search": {"value": "", "regex": False},
+                },
+                {
+                    "data": "ContractNumber",
+                    "name": "",
+                    "searchable": True,
+                    "orderable": True,
+                    "search": {"value": "", "regex": False},
+                },
+                {
+                    "data": None,
+                    "name": "",
+                    "searchable": True,
+                    "orderable": True,
+                    "search": {"value": "", "regex": False},
+                },
+                {
+                    "data": "DateOfGrant",
+                    "name": "",
+                    "searchable": True,
+                    "orderable": True,
+                    "search": {"value": "", "regex": False},
+                },
+                {
+                    "data": "EffectiveDateFrom",
+                    "name": "",
+                    "searchable": True,
+                    "orderable": True,
+                    "search": {"value": "", "regex": False},
+                },
+                {
+                    "data": "EffectiveDateTo",
+                    "name": "",
+                    "searchable": True,
+                    "orderable": True,
+                    "search": {"value": "", "regex": False},
+                },
+                {
+                    "data": "AmountToPay",
+                    "name": "",
+                    "searchable": True,
+                    "orderable": True,
+                    "search": {"value": "", "regex": False},
+                },
+                {
+                    "data": "Service",
+                    "name": "",
+                    "searchable": True,
+                    "orderable": True,
+                    "search": {"value": "", "regex": False},
+                },
+                {
+                    "data": "EntityId",
+                    "name": "",
+                    "searchable": True,
+                    "orderable": True,
+                    "search": {"value": "", "regex": False},
+                },
+                {
+                    "data": "CancellationDate",
+                    "name": "",
+                    "searchable": True,
+                    "orderable": True,
+                    "search": {"value": "", "regex": False},
+                },
+                {
+                    "data": None,
+                    "name": "",
+                    "searchable": False,
+                    "orderable": False,
+                    "search": {"value": "", "regex": False},
+                },
+            ],
+            "order": [{"column": 3, "dir": "desc"}],
             "start": offset,
             "length": limit,
-            "order": [{"column": 3, "dir": "desc"}],
+            "EntityId": None,
+            "ContractNumber": None,
+            "ContractorName": None,
+            "DateOfGrantFrom": None,
+            "DateOfGrantTo": None,
+            "EffectiveDateFrom": None,
+            "EffectiveDateTo": None,
+            "AmountFrom": None,
+            "AmountTo": None,
+            "ServiceGroupId": None,
+            "ServiceId": None,
         },
         headers={"user-agent": random.choice(USER_AGENTS)},
     )

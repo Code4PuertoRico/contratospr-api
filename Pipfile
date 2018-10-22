@@ -19,6 +19,7 @@ dramatiq = {version = "==1.3.0", extras = ["redis", "watch"]}
 requests = "==2.19.1"
 "django-s3-storage" = "==0.12.4"
 filepreviews = "==2.0.2"
+google-cloud-vision = "*"
 
 [requires]
 python_version = "3.7"

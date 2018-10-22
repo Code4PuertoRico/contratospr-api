@@ -1,4 +1,5 @@
 import cgi
+import json
 from tempfile import TemporaryFile
 
 import requests
@@ -8,8 +9,14 @@ from django.core.files import File
 from django.db import models
 from django_s3_storage.storage import S3Storage
 from filepreviews import FilePreviews
+from google.cloud import vision
+from google.oauth2.service_account import Credentials
+from google.protobuf.json_format import MessageToDict
 
 from ..utils.models import BaseModel
+
+service_account_info = json.loads(settings.GOOGLE_APPLICATION_CREDENTIALS)
+credentials = Credentials.from_service_account_info(service_account_info)
 
 s3_storage = S3Storage()
 
@@ -26,6 +33,9 @@ def document_file_path(instance, filename):
 class Entity(BaseModel):
     name = models.CharField(max_length=255)
     source_id = models.PositiveIntegerField(unique=True)
+
+    class Meta:
+        verbose_name_plural = "Entities"
 
     def __str__(self):
         return self.name
@@ -47,9 +57,30 @@ class Document(BaseModel):
     )
 
     preview_data = JSONField(blank=True, null=True)
+    vision_data = JSONField(blank=True, null=True)
 
     def __str__(self):
         return f"{self.source_id}"
+
+    @property
+    def text(self):
+        pages = []
+
+        if self.vision_data:
+            for result in self.vision_data:
+                pages.append(
+                    {
+                        "page": result["page"],
+                        "text": result["fullTextAnnotation"]["text"],
+                    }
+                )
+        elif self.preview_data:
+            ocr_results = self.preview_data["original_file"]["metadata"]["ocr"]
+
+            for result in ocr_results:
+                pages.append({"page": result["page"], "text": result["text"]})
+
+        return pages
 
     def download(self):
         with TemporaryFile() as temp_file:
@@ -75,10 +106,27 @@ class Document(BaseModel):
                 pages="all",
                 metadata=["ocr"],
                 data={"document_id": self.pk},
+                uploader={"public": True},
             )
 
             self.preview_data = response
             self.save(update_fields=["preview_data"])
+
+    def detect_text(self):
+        if self.preview_data:
+            client = vision.ImageAnnotatorClient(credentials=credentials)
+            responses = []
+
+            for thumbnail in self.preview_data["thumbnails"]:
+                image = vision.types.Image()
+                image.source.image_uri = thumbnail["url"]
+                response = client.document_text_detection(image=image)
+                response_dict = MessageToDict(response)
+                response_dict["page"] = thumbnail["page"]
+                responses.append(response_dict)
+
+            self.vision_data = responses
+            self.save(update_fields=["vision_data"])
 
 
 class Contractor(BaseModel):

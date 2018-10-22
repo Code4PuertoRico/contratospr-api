@@ -6,7 +6,13 @@ import pytz
 from django.db import transaction
 
 from .models import Contract, Contractor, Document, Entity, Service
-from .scraper import BASE_CONTRACT_URL, get_amendments, get_contractors, get_contracts
+from .scraper import (
+    BASE_CONTRACT_URL,
+    get_amendments,
+    get_contractors,
+    get_contracts,
+    send_document_request,
+)
 
 
 def parse_date(value):
@@ -79,6 +85,28 @@ def enhance_document(document_id):
 
     # Try to generate preview with FilePreviews
     document.generate_preview()
+
+
+@dramatiq.actor
+@transaction.atomic
+def detect_text(document_id):
+    # Use Cloud Vision API if no text was extracted with FilePreviews
+    document = Document.objects.get(pk=document_id)
+
+    if document.preview_data:
+        ocr_results = document.preview_data["original_file"]["metadata"]["ocr"]
+        extracted_text = []
+
+        for ocr_result in ocr_results:
+            extracted_text.append(ocr_result["text"].strip())
+
+        if len("".join(extracted_text)) < 100:
+            document.detect_text()
+
+
+@dramatiq.actor
+def request_contract_document(contract_id):
+    return send_document_request(contract_id)
 
 
 @dramatiq.actor

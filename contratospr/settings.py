@@ -117,6 +117,7 @@ class Common(Configuration):
 
     FILEPREVIEWS_API_KEY = values.Value(environ_prefix=None)
     FILEPREVIEWS_API_SECRET = values.Value(environ_prefix=None)
+    GOOGLE_APPLICATION_CREDENTIALS = values.Value(environ_prefix=None)
 
 
 class Development(Common):
