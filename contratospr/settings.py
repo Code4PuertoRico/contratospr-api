@@ -115,8 +115,14 @@ class Common(Configuration):
     def BROKER_URL(self):
         return f"{self.REDIS_URL}/0"
 
+    AWS_REGION = values.Value("us-east-1", environ_prefix=None)
+    AWS_ACCESS_KEY_ID = values.SecretValue(environ_prefix=None)
+    AWS_SECRET_ACCESS_KEY = values.SecretValue(environ_prefix=None)
+    AWS_S3_BUCKET_NAME = values.Value(environ_prefix=None)
+
     FILEPREVIEWS_API_KEY = values.Value(environ_prefix=None)
     FILEPREVIEWS_API_SECRET = values.Value(environ_prefix=None)
+
     GOOGLE_APPLICATION_CREDENTIALS = values.Value(environ_prefix=None)
 
 
@@ -154,7 +160,7 @@ class Production(Staging):
     The in-production settings.
     """
 
-    AWS_REGION = values.Value("us-east-1", environ_prefix=None)
-    AWS_ACCESS_KEY_ID = values.SecretValue(environ_prefix=None)
-    AWS_SECRET_ACCESS_KEY = values.SecretValue(environ_prefix=None)
-    AWS_S3_BUCKET_NAME = values.Value(environ_prefix=None)
+
+class Kubernetes(Common):
+    ALLOWED_HOSTS = ["*"]
+    # DEBUG_PROPAGATE_EXCEPTIONS = True

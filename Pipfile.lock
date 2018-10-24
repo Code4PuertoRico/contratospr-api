@@ -25,17 +25,17 @@
         },
         "boto3": {
             "hashes": [
-                "sha256:0556441f2cc5f8a84f57a5cb28ae5b23f9ddacc84aa5b4728e73e02cd9e21021",
-                "sha256:73f8918a919bd753cf3a9d03f4387ce65b82b677c89c600e67ce3deaa9302524"
+                "sha256:137d8bf453c7daa794aa8fe094e0365287260062db88b0edc53eb061c1a2f655",
+                "sha256:aff5297d37130097e04c33dd65d885906e4012dfa2863b228b21335857d7b4e8"
             ],
-            "version": "==1.9.28"
+            "version": "==1.9.29"
         },
         "botocore": {
             "hashes": [
-                "sha256:b7868bcfddecd269e8f60e9c9b0079e2fa74bd21e0dae89fce70c012127ea4a0",
-                "sha256:e28316bcda7af32dc7273a3842678c38b2c5f80c48f5e9443d7fdd35b138ea9a"
+                "sha256:494b351c6d1b55f6f334bd86b1a3bd2e7a10d935ae6e6eaac0a72a46b524a17d",
+                "sha256:a255db27a0b550736f684e767e263dd0bfe09e9f4a71720e6dcb78a0c5223ad0"
             ],
-            "version": "==1.12.28"
+            "version": "==1.12.29"
         },
         "cachetools": {
             "hashes": [
@@ -295,6 +295,8 @@
                 "sha256:1931d8efce896981fe410c802fd66df14f9f429c32a72dd9cfeeac9815ec6444",
                 "sha256:196d3a80f93c537f27d2a19a4fafb826fb4c331b0b99110f985119391d170f96",
                 "sha256:46e34fdcc2b1f2620172d3a4885128705a4e658b9b62355ae5e98f9ea19f42c2",
+                "sha256:4b92e235a3afd42e7493b281c8b80c0c65cbef45de30f43d571d1ee40a1f77ef",
+                "sha256:574085a33ca0d2c67433e5f3e9a0965c487410d6cb3406c83bdaf549bfc2992e",
                 "sha256:59cd75ded98094d3cf2d79e84cdb38a46e33e7441b2826f3838dcc7c07f82995",
                 "sha256:5ee0522eed6680bb5bac5b6d738f7b0923b3cafce8c4b1a039a6107f0841d7ed",
                 "sha256:65917cfd5da9dfc993d5684643063318a2e875f798047911a9dd71ca066641c9",
@@ -436,7 +438,7 @@
                 "sha256:a68ac5e15e76e7e5dd2b8f94007233e01effe3e50e8daddf69acfd81cb686baf",
                 "sha256:b5725a0bd4ba422ab0e66e89e030c806576753ea3ee08554382c14e685d117b5"
             ],
-            "markers": "python_version >= '2.6' and python_version != '3.2.*' and python_version != '3.0.*' and python_version != '3.1.*' and python_version < '4' and python_version != '3.3.*'",
+            "markers": "python_version >= '3.4'",
             "version": "==1.23"
         },
         "watchdog": {

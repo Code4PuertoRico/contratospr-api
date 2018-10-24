@@ -1,0 +1,10 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: tracking-contratospr-ingress
+  annotations:
+    kubernetes.io/ingress.global-static-ip-name: "tracking-contratospr-static-ip"
+spec:
+  backend:
+    serviceName: tracking-contratospr
+    servicePort: 8000

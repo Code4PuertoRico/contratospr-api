@@ -1,0 +1,115 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: tracking-contratospr
+spec:
+  type: NodePort
+  ports:
+    - name: tracking-contratospr
+      port: 8000
+      targetPort: 8000
+      protocol: TCP
+  selector:
+    app: tracking-contratospr
+
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: tracking-contratospr
+spec:
+  replicas: 1
+  revisionHistoryLimit: 2
+  template:
+    metadata:
+      labels:
+        name: tracking-contratospr
+        app: tracking-contratospr
+    spec:
+      containers:
+        - name: tracking-contratos-pr
+          image: gcr.io/tracking-contratos-pr/tracking-contratos-pr:latest
+          imagePullPolicy: Always
+          env:
+            - name: ENVIRONMENT
+              value: 'KUBERNETES'
+            - name: DJANGO_DEBUG
+              value: 'no'
+            - name: DJANGO_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: tracking-contratospr
+                  key: DJANGO_SECRET_KEY
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: tracking-contratospr
+                  key: AWS_ACCESS_KEY_ID
+            - name: AWS_S3_BUCKET_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: tracking-contratospr
+                  key: AWS_S3_BUCKET_NAME
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: tracking-contratospr
+                  key: AWS_SECRET_ACCESS_KEY
+            - name: FILEPREVIEWS_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: tracking-contratospr
+                  key: FILEPREVIEWS_API_KEY
+            - name: FILEPREVIEWS_API_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: tracking-contratospr
+                  key: FILEPREVIEWS_API_SECRET
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              valueFrom:
+                secretKeyRef:
+                  name: tracking-contratospr
+                  key: GOOGLE_APPLICATION_CREDENTIALS
+            - name: POSTGRES_USERNAME
+              value: tracking-contratospr
+            - name: POSTGRES_DATABASE
+              value: tracking-contratospr
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: tracking-contratospr-postgresql
+                  key: postgres-password
+            - name: POSTGRES_HOST
+              value: tracking-contratospr-postgresql.default.svc.cluster.local
+            - name: DATABASE_URL
+              value: 'postgres://$(POSTGRES_USERNAME):$(POSTGRES_PASSWORD)@$(POSTGRES_HOST)/$(POSTGRES_DATABASE)'
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: tracking-contratospr-redis
+                  key: redis-password
+            - name: REDIS_HOST
+              value: tracking-contratospr-redis.default.svc.cluster.local
+            - name: REDIS_URL
+              value: 'redis://:$(REDIS_PASSWORD)@$(REDIS_HOST)'
+            - name: ELASTICSEARCH_HOST
+              value: tracking-contratospr-elasticsearch-client.default.svc
+          command: ['/bin/sh', '-c']
+          args:
+            [
+              'python manage.py collectstatic --no-input && gunicorn -b 0.0.0.0:8000 contratospr.wsgi',
+            ]
+          ports:
+            - name: web
+              containerPort: 8000
+              protocol: TCP
+
+          livenessProbe:
+            httpGet:
+              path: /health/liveness/
+              port: 8000
+
+          readinessProbe:
+            httpGet:
+              path: /health/readiness/
+              port: 8000
