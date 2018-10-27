@@ -94,10 +94,13 @@ def detect_text(document_id):
     document = Document.objects.get(pk=document_id)
 
     if document.preview_data:
-        ocr_results = document.preview_data["original_file"]["metadata"]["ocr"]
         extracted_text = []
 
-        for ocr_result in ocr_results:
+        original_file = document.preview_data["original_file"] or {
+            "metadata": {"ocr": []}
+        }
+
+        for ocr_result in original_file["metadata"]["ocr"]:
             extracted_text.append(ocr_result["text"].strip())
 
         if len("".join(extracted_text)) < 100:

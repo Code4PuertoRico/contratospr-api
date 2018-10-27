@@ -75,9 +75,11 @@ class Document(BaseModel):
                     }
                 )
         elif self.preview_data:
-            ocr_results = self.preview_data["original_file"]["metadata"]["ocr"]
+            original_file = self.preview_data["original_file"] or {
+                "metadata": {"ocr": []}
+            }
 
-            for result in ocr_results:
+            for result in original_file["metadata"]["ocr"]:
                 pages.append({"page": result["page"], "text": result["text"]})
 
         return pages
