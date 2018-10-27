@@ -4,6 +4,7 @@ metadata:
   name: tracking-contratospr-ingress
   annotations:
     kubernetes.io/ingress.global-static-ip-name: "tracking-contratospr-static-ip"
+    ingress.gcp.kubernetes.io/pre-shared-cert: 'contratospr-jpadilla-com'
 spec:
   backend:
     serviceName: tracking-contratospr-web

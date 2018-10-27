@@ -70,19 +70,17 @@ spec:
                 secretKeyRef:
                   name: tracking-contratospr
                   key: GOOGLE_APPLICATION_CREDENTIALS
-            - name: POSTGRES_USERNAME
-              value: tracking-contratospr
             - name: POSTGRES_DATABASE
               value: tracking-contratospr
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: tracking-contratospr-postgresql
-                  key: postgres-password
+                  name: tracking-contratospr-postgresql-postgresql
+                  key: postgresql-password
             - name: POSTGRES_HOST
-              value: tracking-contratospr-postgresql.default.svc.cluster.local
+              value: tracking-contratospr-postgresql-postgresql.default.svc.cluster.local
             - name: DATABASE_URL
-              value: 'postgres://$(POSTGRES_USERNAME):$(POSTGRES_PASSWORD)@$(POSTGRES_HOST)/$(POSTGRES_DATABASE)'
+              value: 'postgres://postgres:$(POSTGRES_PASSWORD)@$(POSTGRES_HOST)/$(POSTGRES_DATABASE)'
             - name: REDIS_PASSWORD
               valueFrom:
                 secretKeyRef:
@@ -172,19 +170,17 @@ spec:
                 secretKeyRef:
                   name: tracking-contratospr
                   key: GOOGLE_APPLICATION_CREDENTIALS
-            - name: POSTGRES_USERNAME
-              value: tracking-contratospr
             - name: POSTGRES_DATABASE
               value: tracking-contratospr
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: tracking-contratospr-postgresql
-                  key: postgres-password
+                  name: tracking-contratospr-postgresql-postgresql
+                  key: postgresql-password
             - name: POSTGRES_HOST
-              value: tracking-contratospr-postgresql.default.svc.cluster.local
+              value: tracking-contratospr-postgresql-postgresql.default.svc.cluster.local
             - name: DATABASE_URL
-              value: 'postgres://$(POSTGRES_USERNAME):$(POSTGRES_PASSWORD)@$(POSTGRES_HOST)/$(POSTGRES_DATABASE)'
+              value: 'postgres://postgres:$(POSTGRES_PASSWORD)@$(POSTGRES_HOST)/$(POSTGRES_DATABASE)'
             - name: REDIS_PASSWORD
               valueFrom:
                 secretKeyRef:

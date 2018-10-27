@@ -161,6 +161,6 @@ class Production(Staging):
     """
 
 
-class Kubernetes(Common):
+class Kubernetes(Production):
     ALLOWED_HOSTS = ["*"]
-    # DEBUG_PROPAGATE_EXCEPTIONS = True
+    SECURE_REDIRECT_EXEMPT = [r"^health/liveness/$", r"^health/readiness/$"]
