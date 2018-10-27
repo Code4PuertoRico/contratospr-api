@@ -42,8 +42,11 @@ class Entity(BaseModel):
 
 
 class Service(BaseModel):
-    name = models.CharField(max_length=255, unique=True)
+    name = models.CharField(max_length=255)
     group = models.CharField(max_length=255)
+
+    class Meta:
+        unique_together = ("name", "group")
 
     def __str__(self):
         return self.name
