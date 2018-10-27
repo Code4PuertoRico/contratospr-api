@@ -6,5 +6,5 @@ metadata:
     kubernetes.io/ingress.global-static-ip-name: "tracking-contratospr-static-ip"
 spec:
   backend:
-    serviceName: tracking-contratospr
+    serviceName: tracking-contratospr-web
     servicePort: 8000
