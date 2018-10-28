@@ -1,0 +1,10 @@
+<html>
+  <head></head>
+  <body>
+    <ul>
+      {% for entity in entities %}
+        <li><a href="{% url 'entity' entity.id %}">{{ entity }}</a></li>
+      {% endfor %}
+    </ul>
+  </body>
+</html>

@@ -1,0 +1,25 @@
+<html>
+  <head></head>
+  <body>
+    <h1>{{ contract }}</h1>
+    <p>${{ contract.amount_to_pay }}</p>
+    <p>date_of_grant: {{ contract.date_of_grant }}</p>
+    <p>effective_date_from: {{ contract.effective_date_from }}</p>
+    <p>effective_date_to: {{ contract.effective_date_to }}</p>
+
+    <h2>Contractors</h2>
+    <ul>
+      {% for contractor in contract.contractors.all %}
+        <li><a href="{% url 'contractor' contractor.id %}">{{ contractor }}</a></li>
+      {% endfor %}
+    </ul>
+
+    {% if contract.document %}
+      <h2>Document</h2>
+      <p>{{ contract.document.source_url }}</p>
+      {% for page in contract.document.pages %}
+        <p>{{ page.number }} - {{ page.text }}</p>
+      {% endfor %}
+    {% endif %}
+  </body>
+</html>

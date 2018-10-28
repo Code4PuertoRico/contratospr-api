@@ -1,0 +1,12 @@
+<html>
+  <head></head>
+  <body>
+    <p>{{ entity }}</p>
+
+    <ul>
+      {% for contract in entity.contract_set.all %}
+        <li><a href="{% url 'contract' contract.id %}">{{ contract }} - {{ contract.amount_to_pay }}</a></li>
+      {% endfor %}
+      </ul>
+  </body>
+</html>

@@ -66,14 +66,14 @@ class Document(BaseModel):
         return f"{self.source_id}"
 
     @property
-    def text(self):
+    def pages(self):
         pages = []
 
         if self.vision_data:
             for result in self.vision_data:
                 pages.append(
                     {
-                        "page": result["page"],
+                        "number": result["page"],
                         "text": result["fullTextAnnotation"]["text"],
                     }
                 )
@@ -83,7 +83,7 @@ class Document(BaseModel):
             }
 
             for result in original_file["metadata"]["ocr"]:
-                pages.append({"page": result["page"], "text": result["text"]})
+                pages.append({"number": result["page"], "text": result["text"]})
 
         return pages
 
@@ -118,7 +118,7 @@ class Document(BaseModel):
             self.save(update_fields=["preview_data"])
 
     def detect_text(self):
-        if self.preview_data:
+        if self.preview_data and self.preview_data["thumbnails"]:
             client = vision.ImageAnnotatorClient(credentials=credentials)
             responses = []
 

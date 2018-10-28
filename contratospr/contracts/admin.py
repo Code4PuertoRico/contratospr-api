@@ -45,7 +45,7 @@ class DocumentAdmin(admin.ModelAdmin):
     exclude = ["preview_data", "vision_data"]
 
     def has_text(self, obj):
-        return len(obj.text) > 0
+        return len(obj.pages) > 0
 
     has_text.boolean = True
 
