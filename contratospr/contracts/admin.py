@@ -1,6 +1,7 @@
 from django.contrib import admin
 
 from .models import Contract, Contractor, Document, Entity, Service
+from .search import index_contract
 
 
 @admin.register(Contract)
@@ -43,11 +44,24 @@ class ContractorAdmin(admin.ModelAdmin):
 class DocumentAdmin(admin.ModelAdmin):
     list_display = ["source_id", "has_text", "created_at", "modified_at"]
     exclude = ["preview_data", "vision_data"]
+    actions = ["detect_text"]
 
     def has_text(self, obj):
         return len(obj.pages) > 0
 
     has_text.boolean = True
+
+    def detect_text(self, request, queryset):
+        for document in queryset:
+            if not document.vision_data:
+                document.detect_text()
+
+                for contract in document.contract_set.all():
+                    index_contract(contract)
+
+    detect_text.short_description = (
+        "Detect text using Vision API for selected documents"
+    )
 
 
 @admin.register(Entity)
