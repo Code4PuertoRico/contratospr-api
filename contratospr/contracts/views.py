@@ -5,6 +5,7 @@ from django.shortcuts import get_object_or_404, render
 from django.views.decorators.csrf import csrf_exempt
 
 from .models import Contract, Contractor, Document, Entity
+from .search import search_contracts
 from .tasks import detect_text
 
 
@@ -30,6 +31,13 @@ def contractor(request, contractor_id):
     contractor = get_object_or_404(Contractor, pk=contractor_id)
     context = {"contractor": contractor}
     return render(request, "contracts/contractor.html", context)
+
+
+def search(request):
+    query = request.GET.get("q")
+    response = search_contracts(query=query)
+    context = {"response": response}
+    return render(request, "contracts/search.html", context)
 
 
 @csrf_exempt

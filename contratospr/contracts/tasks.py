@@ -14,6 +14,8 @@ from .scraper import (
     send_document_request,
 )
 
+from .search import index_contract
+
 
 def parse_date(value):
     if not value:
@@ -106,6 +108,9 @@ def detect_text(document_id):
         if len("".join(extracted_text)) < 100:
             document.detect_text()
 
+    for contract in document.contract_set.all():
+        index_contract(contract)
+
 
 @dramatiq.actor
 def request_contract_document(contract_id):
@@ -139,13 +144,15 @@ def update_contract(result, parent_id=None):
     }
 
     if result["document_id"]:
-        document, _ = Document.objects.update_or_create(
+        document, created = Document.objects.update_or_create(
             source_id=result["document_id"],
             defaults={"source_url": result["document_url"]},
         )
 
         contract_data["document"] = document
-        enhance_document.send(document.pk)
+
+        if created:
+            enhance_document.send(document.pk)
 
     contract, _ = Contract.objects.update_or_create(
         source_id=result["contract_id"], defaults=contract_data

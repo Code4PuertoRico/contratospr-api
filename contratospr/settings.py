@@ -38,6 +38,7 @@ class Common(Configuration):
         "django_s3_storage",
         "contratospr.users",
         "contratospr.contracts",
+        "contratospr.utils",
     ]
 
     MIDDLEWARE = [
@@ -109,7 +110,7 @@ class Common(Configuration):
 
     AUTH_USER_MODEL = "users.User"
 
-    REDIS_URL = values.Value(environ_name="REDIS_URL", environ_prefix=None)
+    REDIS_URL = values.Value(environ_prefix=None)
 
     @property
     def BROKER_URL(self):
@@ -124,6 +125,8 @@ class Common(Configuration):
     FILEPREVIEWS_API_SECRET = values.Value(environ_prefix=None)
 
     GOOGLE_APPLICATION_CREDENTIALS = values.Value(environ_prefix=None)
+
+    ELASTICSEARCH_URL = values.Value(environ_prefix=None)
 
 
 class Development(Common):

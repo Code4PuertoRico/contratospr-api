@@ -1,0 +1,31 @@
+{% load get %}
+
+<html>
+  <head></head>
+  <body>
+    <form action="" method="GET">
+      <input type="text" name="q">
+      <input type="submit">
+    </form>
+    {% for hit in response %}
+      <p><a href="{% url 'contract' hit.meta.id %}">{{ hit.number }}</a></p>
+
+      {% with document_pages=hit.meta.inner_hits|get:"document.pages" %}
+        {% if document_pages %}
+          <p>Document</p>
+          {% with text=document_pages.hits.hits.0.highlight|get:"document.pages.text" %}
+            {{text|first}}
+          {% endwith %}
+        {% endif %}
+      {% endwith %}
+
+      {% if hit.meta.inner_hits.contractors %}
+        <p>Contractor</p>
+        {% with contractor_name=hit.meta.inner_hits.contractors.hits.hits.0.highlight|get:"contractors.name" %}
+          {{contractor_name|first}}
+        {% endwith %}
+      {% endif %}
+      <hr>
+    {% endfor %}
+  </body>
+</html>

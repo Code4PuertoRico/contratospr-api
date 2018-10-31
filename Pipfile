@@ -20,6 +20,7 @@ requests = "==2.20.0"
 "django-s3-storage" = "==0.12.4"
 filepreviews = "==2.0.2"
 google-cloud-vision = "==0.34.0"
+elasticsearch-dsl = "==6.2.1"
 
 [requires]
 python_version = "3.7"

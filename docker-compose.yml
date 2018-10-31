@@ -4,6 +4,9 @@ volumes:
   database:
     external: false
 
+  elasticsearch:
+    external: false
+
 services:
   database:
     image: postgres:9.4
@@ -26,6 +29,7 @@ services:
     links:
       - database:database
       - redis:redis
+      - elasticsearch:elasticsearch
 
   web:
     build: .
@@ -36,7 +40,24 @@ services:
     volumes:
       - .:/app
     ports:
-      - "8000:8000"
+      - '8000:8000'
     links:
       - database:database
       - redis:redis
+      - elasticsearch:elasticsearch
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:6.4.2
+    container_name: elasticsearch
+    environment:
+      - cluster.name=docker-cluster
+      - bootstrap.memory_lock=true
+      - 'ES_JAVA_OPTS=-Xms512m -Xmx512m'
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - elasticsearch:/usr/share/elasticsearch/data
+    ports:
+      - '9200:9200'

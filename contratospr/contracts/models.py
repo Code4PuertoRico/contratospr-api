@@ -71,12 +71,21 @@ class Document(BaseModel):
 
         if self.vision_data:
             for result in self.vision_data:
-                pages.append(
-                    {
-                        "number": result["page"],
-                        "text": result["fullTextAnnotation"]["text"],
-                    }
-                )
+                full_text_annotation = result.get("fullTextAnnotation")
+                text_annotations = result.get("textAnnotations")
+
+                if full_text_annotation:
+                    pages.append(
+                        {"number": result["page"], "text": full_text_annotation["text"]}
+                    )
+                elif text_annotations:
+                    pages.append(
+                        {
+                            "number": result["page"],
+                            "text": text_annotations[0]["description"],
+                        }
+                    )
+
         elif self.preview_data:
             original_file = self.preview_data["original_file"] or {
                 "metadata": {"ocr": []}
@@ -118,6 +127,7 @@ class Document(BaseModel):
             self.save(update_fields=["preview_data"])
 
     def detect_text(self):
+        # TODO Store less data from annotation result
         if self.preview_data and self.preview_data["thumbnails"]:
             client = vision.ImageAnnotatorClient(credentials=credentials)
             responses = []

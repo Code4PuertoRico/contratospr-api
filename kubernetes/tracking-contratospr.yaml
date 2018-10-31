@@ -90,8 +90,11 @@ spec:
               value: tracking-contratospr-redis-master.default.svc.cluster.local
             - name: REDIS_URL
               value: 'redis://:$(REDIS_PASSWORD)@$(REDIS_HOST)'
-            - name: ELASTICSEARCH_HOST
-              value: tracking-contratospr-elasticsearch-client.default.svc
+            - name: ELASTICSEARCH_URL
+              valueFrom:
+                secretKeyRef:
+                  name: tracking-contratospr
+                  key: ELASTICSEARCH_URL
           command: ['/bin/sh', '-c']
           args:
             [
@@ -190,7 +193,10 @@ spec:
               value: tracking-contratospr-redis-master.default.svc.cluster.local
             - name: REDIS_URL
               value: 'redis://:$(REDIS_PASSWORD)@$(REDIS_HOST)'
-            - name: ELASTICSEARCH_HOST
-              value: tracking-contratospr-elasticsearch-client.default.svc
+            - name: ELASTICSEARCH_URL
+              valueFrom:
+                secretKeyRef:
+                  name: tracking-contratospr
+                  key: ELASTICSEARCH_URL
           command: ['/bin/sh', '-c']
           args: ['./docker-entrypoint.sh start-worker']
