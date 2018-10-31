@@ -13,7 +13,6 @@ from .scraper import (
     get_contracts,
     send_document_request,
 )
-
 from .search import index_contract
 
 
@@ -91,7 +90,7 @@ def enhance_document(document_id):
 
 @dramatiq.actor
 @transaction.atomic
-def detect_text(document_id):
+def detect_text(document_id, force=False):
     # Use Cloud Vision API if no text was extracted with FilePreviews
     document = Document.objects.get(pk=document_id)
 
@@ -105,11 +104,11 @@ def detect_text(document_id):
         for ocr_result in original_file["metadata"]["ocr"]:
             extracted_text.append(ocr_result["text"].strip())
 
-        if len("".join(extracted_text)) < 100:
+        if force or len("".join(extracted_text)) < 100:
             document.detect_text()
 
-    for contract in document.contract_set.all():
-        index_contract(contract)
+            for contract in document.contract_set.all():
+                index_contract(contract)
 
 
 @dramatiq.actor

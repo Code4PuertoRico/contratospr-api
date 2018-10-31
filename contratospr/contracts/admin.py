@@ -1,7 +1,6 @@
 from django.contrib import admin
 
 from .models import Contract, Contractor, Document, Entity, Service
-from .search import index_contract
 
 
 @admin.register(Contract)
@@ -9,6 +8,7 @@ class ContractAdmin(admin.ModelAdmin):
     list_display = [
         "number",
         "amendment",
+        "source_id",
         "date_of_grant",
         "service",
         "has_document",
@@ -37,13 +37,15 @@ class ContractAdmin(admin.ModelAdmin):
 
 @admin.register(Contractor)
 class ContractorAdmin(admin.ModelAdmin):
-    list_display = ["__str__", "created_at", "modified_at"]
+    list_display = ["name", "source_id", "created_at", "modified_at"]
+    search_fields = ["name", "source_id"]
 
 
 @admin.register(Document)
 class DocumentAdmin(admin.ModelAdmin):
     list_display = ["source_id", "has_text", "created_at", "modified_at"]
     exclude = ["preview_data", "vision_data"]
+    search_fields = ["source_id"]
     actions = ["detect_text"]
 
     def has_text(self, obj):
@@ -52,12 +54,11 @@ class DocumentAdmin(admin.ModelAdmin):
     has_text.boolean = True
 
     def detect_text(self, request, queryset):
+        from .tasks import detect_text
+
         for document in queryset:
             if not document.vision_data:
-                document.detect_text()
-
-                for contract in document.contract_set.all():
-                    index_contract(contract)
+                detect_text.send(document.pk, force=True)
 
     detect_text.short_description = (
         "Detect text using Vision API for selected documents"
@@ -66,9 +67,11 @@ class DocumentAdmin(admin.ModelAdmin):
 
 @admin.register(Entity)
 class EntityAdmin(admin.ModelAdmin):
-    list_display = ["__str__", "created_at", "modified_at"]
+    list_display = ["name", "source_id", "created_at", "modified_at"]
+    search_fields = ["name", "source_id"]
 
 
 @admin.register(Service)
 class ServiceAdmin(admin.ModelAdmin):
-    list_display = ["__str__", "created_at", "modified_at"]
+    list_display = ["name", "group", "created_at", "modified_at"]
+    search_fields = ["name", "group"]
