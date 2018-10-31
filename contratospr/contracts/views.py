@@ -35,7 +35,7 @@ def contractor(request, contractor_id):
 
 def search(request):
     query = request.GET.get("q")
-    response = search_contracts(query=query)
+    response = search_contracts(query=query) if query else None
     context = {"response": response}
     return render(request, "contracts/search.html", context)
 
