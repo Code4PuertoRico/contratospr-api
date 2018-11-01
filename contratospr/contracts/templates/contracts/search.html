@@ -10,19 +10,17 @@
     {% for hit in response %}
       <p><a href="{% url 'contract' hit.meta.id %}">{{ hit.number }}</a></p>
 
-      {% with document_pages=hit.meta.inner_hits|get:"document.pages" %}
-        {% if document_pages %}
-          <p>Document</p>
-          {% with text=document_pages.hits.hits.0.highlight|get:"document.pages.text" %}
-            {{text|first}}
-          {% endwith %}
-        {% endif %}
-      {% endwith %}
+      {% if hit.meta.inner_hits.document %}
+        <p>Document</p>
+        {% with text=hit.meta.inner_hits.document.hits.hits.0.highlight|get:"document.text" %}
+          {{text|first|safe}}
+        {% endwith %}
+      {% endif %}
 
       {% if hit.meta.inner_hits.contractors %}
         <p>Contractor</p>
         {% with contractor_name=hit.meta.inner_hits.contractors.hits.hits.0.highlight|get:"contractors.name" %}
-          {{contractor_name|first}}
+          {{contractor_name|first|safe}}
         {% endwith %}
       {% endif %}
       <hr>

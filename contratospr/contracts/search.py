@@ -71,7 +71,7 @@ def index_contract(obj):
         if obj.entity_id:
             contract.entity = Entity(_id=obj.entity_id, name=obj.entity.name)
 
-        if obj.document_id:
+        if obj.document_id and obj.document.pages:
             for page in obj.document.pages:
                 contract.document.append(ContractDocumentPage(text=page["text"]))
 
