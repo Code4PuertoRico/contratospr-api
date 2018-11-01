@@ -48,8 +48,20 @@ def filepreviews_webhook(request):
             document_id = body["user_data"]["document_id"]
 
             if document_id:
-                Document.objects.filter(pk=document_id).update(preview_data=body)
-                detect_text.send(document_id)
+                pages = []
+
+                original_file = body["original_file"] or {"metadata": {"ocr": []}}
+
+                for result in original_file["metadata"]["ocr"]:
+                    pages.append({"number": result["page"], "text": result["text"]})
+
+                update_data = {"preview_data": body}
+
+                if pages:
+                    update_data["pages"] = pages
+
+                Document.objects.filter(pk=document_id).update(**update_data)
+                detect_text.send(document_id, force=not pages)
                 return JsonResponse({"success": True}, status=200)
 
         except Exception:

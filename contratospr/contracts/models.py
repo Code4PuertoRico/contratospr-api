@@ -59,42 +59,12 @@ class Document(BaseModel):
         blank=True, null=True, upload_to=document_file_path, storage=s3_storage
     )
 
+    pages = JSONField(blank=True, null=True)
     preview_data = JSONField(blank=True, null=True)
     vision_data = JSONField(blank=True, null=True)
 
     def __str__(self):
         return f"{self.source_id}"
-
-    @property
-    def pages(self):
-        pages = []
-
-        if self.vision_data:
-            for result in self.vision_data:
-                full_text_annotation = result.get("fullTextAnnotation")
-                text_annotations = result.get("textAnnotations")
-
-                if full_text_annotation:
-                    pages.append(
-                        {"number": result["page"], "text": full_text_annotation["text"]}
-                    )
-                elif text_annotations:
-                    pages.append(
-                        {
-                            "number": result["page"],
-                            "text": text_annotations[0]["description"],
-                        }
-                    )
-
-        elif self.preview_data:
-            original_file = self.preview_data["original_file"] or {
-                "metadata": {"ocr": []}
-            }
-
-            for result in original_file["metadata"]["ocr"]:
-                pages.append({"number": result["page"], "text": result["text"]})
-
-        return pages
 
     def download(self):
         with TemporaryFile() as temp_file:
@@ -130,18 +100,35 @@ class Document(BaseModel):
         # TODO Store less data from annotation result
         if self.preview_data and self.preview_data["thumbnails"]:
             client = vision.ImageAnnotatorClient(credentials=credentials)
-            responses = []
+            results = []
+            pages = []
 
             for thumbnail in self.preview_data["thumbnails"]:
                 image = vision.types.Image()
                 image.source.image_uri = thumbnail["url"]
                 response = client.document_text_detection(image=image)
-                response_dict = MessageToDict(response)
-                response_dict["page"] = thumbnail["page"]
-                responses.append(response_dict)
+                result = MessageToDict(response)
+                result["page"] = thumbnail["page"]
+                results.append(result)
 
-            self.vision_data = responses
-            self.save(update_fields=["vision_data"])
+                full_text_annotation = result.get("fullTextAnnotation")
+                text_annotations = result.get("textAnnotations")
+
+                if full_text_annotation:
+                    pages.append(
+                        {"number": result["page"], "text": full_text_annotation["text"]}
+                    )
+                elif text_annotations:
+                    pages.append(
+                        {
+                            "number": result["page"],
+                            "text": text_annotations[0]["description"],
+                        }
+                    )
+
+            self.vision_data = results
+            self.pages = pages
+            self.save(update_fields=["vision_data", "pages"])
 
 
 class Contractor(BaseModel):
