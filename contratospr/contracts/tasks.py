@@ -3,7 +3,10 @@ import re
 
 import dramatiq
 import pytz
+from django.conf import settings
 from django.db import transaction
+from dramatiq.rate_limits import ConcurrentRateLimiter
+from dramatiq.rate_limits.backends import RedisBackend
 
 from .models import Contract, Contractor, Document, Entity, Service
 from .scraper import (
@@ -14,6 +17,9 @@ from .scraper import (
     send_document_request,
 )
 from .search import index_contract
+
+backend = RedisBackend(url=settings.REDIS_URL)
+DISTRIBUTED_MUTEX = ConcurrentRateLimiter(backend, "distributed-mutex", limit=1)
 
 
 def parse_date(value):
@@ -79,13 +85,14 @@ def expand_contract(contract):
 @dramatiq.actor
 @transaction.atomic
 def enhance_document(document_id):
-    document = Document.objects.get(pk=document_id)
+    with DISTRIBUTED_MUTEX.acquire():
+        document = Document.objects.get(pk=document_id)
 
-    # Download document and upload to S3
-    document.download()
+        # Download document and upload to S3
+        document.download()
 
-    # Try to generate preview with FilePreviews
-    document.generate_preview()
+        # Try to generate preview with FilePreviews
+        document.generate_preview()
 
 
 @dramatiq.actor
