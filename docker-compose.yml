@@ -33,7 +33,7 @@ services:
 
   web:
     build: .
-    command: start
+    command: start-web-dev
     entrypoint: /app/docker-entrypoint.sh
     env_file:
       - .env

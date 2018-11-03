@@ -95,11 +95,7 @@ spec:
                 secretKeyRef:
                   name: tracking-contratospr
                   key: ELASTICSEARCH_URL
-          command: ['/bin/sh', '-c']
-          args:
-            [
-              'python manage.py collectstatic --no-input && gunicorn -b 0.0.0.0:8000 contratospr.wsgi',
-            ]
+        command: ['/app/docker-entrypoint.sh', 'start-web']
           ports:
             - name: web
               containerPort: 8000
@@ -198,5 +194,4 @@ spec:
                 secretKeyRef:
                   name: tracking-contratospr
                   key: ELASTICSEARCH_URL
-          command: ['/bin/sh', '-c']
-          args: ['./docker-entrypoint.sh start-worker']
+          command: ['./docker-entrypoint.sh', 'start-worker']

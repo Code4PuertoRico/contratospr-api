@@ -21,6 +21,7 @@ requests = "==2.20.0"
 filepreviews = "==2.0.2"
 google-cloud-vision = "==0.34.0"
 elasticsearch-dsl = "==6.2.1"
+uvicorn = "==0.3.17"
 
 [requires]
 python_version = "3.7"

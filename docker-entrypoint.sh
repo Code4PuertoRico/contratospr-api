@@ -16,7 +16,7 @@ END
 }
 
 case "$1" in
-  "start")
+  "start-web-dev")
     until postgres_ready; do
       >&2 echo "==> Waiting for Postgres..."
       sleep 1
@@ -27,7 +27,20 @@ case "$1" in
     python manage.py migrate
 
     echo "==> Running dev server..."
-    python manage.py runserver 0.0.0.0:8000
+    python manage.py runserver_plus 0.0.0.0:8000
+    ;;
+
+  "start-web")
+    until postgres_ready; do
+      >&2 echo "==> Waiting for Postgres..."
+      sleep 1
+    done
+
+    echo "==> Running migrations..."
+    python manage.py collectstatic --no-input
+
+    echo "==> Running web server..."
+    uvicorn --host 0.0.0.0 --port 8000 --wsgi contratospr.wsgi:application
     ;;
 
   "start-worker")
