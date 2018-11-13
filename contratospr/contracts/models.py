@@ -7,6 +7,7 @@ from django.conf import settings
 from django.contrib.postgres.fields import JSONField
 from django.core.files import File
 from django.db import models
+from django.utils.functional import cached_property
 from django_s3_storage.storage import S3Storage
 from filepreviews import FilePreviews
 from google.cloud import vision
@@ -60,11 +61,31 @@ class Document(BaseModel):
     )
 
     pages = JSONField(blank=True, null=True)
-    preview_data = JSONField(blank=True, null=True)
-    vision_data = JSONField(blank=True, null=True)
+
+    preview_data_file = models.FileField(
+        blank=True, null=True, upload_to=document_file_path, storage=s3_storage
+    )
+
+    vision_data_file = models.FileField(
+        blank=True, null=True, upload_to=document_file_path, storage=s3_storage
+    )
 
     def __str__(self):
         return f"{self.source_id}"
+
+    @cached_property
+    def preview_data(self):
+        if self.preview_data_file:
+            with self.preview_data_file.open() as preview_data_file:
+                preview_data = json.load(preview_data_file)
+            return preview_data
+
+    @cached_property
+    def vision_data(self):
+        if self.vision_data_file:
+            with self.vision_data_file.open() as vision_data_file:
+                vision_data = json.load(vision_data_file)
+            return vision_data
 
     def download(self):
         with TemporaryFile() as temp_file:
@@ -77,6 +98,20 @@ class Document(BaseModel):
             file_name = get_filename_from_content_disposition(content_disposition)
 
             self.file.save(file_name, File(temp_file))
+
+    def update_preview_data(self, data):
+        with TemporaryFile() as temp_file:
+            temp_file.write(json.dumps(data))
+            temp_file.seek(0)
+
+            self.preview_data_file.save("preview.json", File(temp_file), save=False)
+
+    def update_vision_data(self, data):
+        with TemporaryFile() as temp_file:
+            temp_file.write(json.dumps(data))
+            temp_file.seek(0)
+
+            self.vision_data_file.save("vision.json", File(temp_file), save=False)
 
     def generate_preview(self):
         if self.file:
@@ -93,11 +128,10 @@ class Document(BaseModel):
                 uploader={"public": True},
             )
 
-            self.preview_data = response
-            self.save(update_fields=["preview_data"])
+            self.update_preview_data(response)
+            self.save(update_fields=["preview_data_file"])
 
     def detect_text(self):
-        # TODO Store less data from annotation result
         if self.preview_data and self.preview_data["thumbnails"]:
             client = vision.ImageAnnotatorClient(credentials=credentials)
             results = []
@@ -126,9 +160,9 @@ class Document(BaseModel):
                         }
                     )
 
-            self.vision_data = results
             self.pages = pages
-            self.save(update_fields=["vision_data", "pages"])
+            self.update_vision_data(results)
+            self.save(update_fields=["vision_data_file", "pages"])
 
 
 class Contractor(BaseModel):

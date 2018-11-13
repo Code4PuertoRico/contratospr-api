@@ -55,12 +55,15 @@ def filepreviews_webhook(request):
                 for result in original_file["metadata"]["ocr"]:
                     pages.append({"number": result["page"], "text": result["text"]})
 
-                update_data = {"preview_data": body}
+                document = Document.objects.get(pk=document_id)
+                document.update_preview_data(body)
+                update_fields = ["preview_data_file"]
 
                 if pages:
-                    update_data["pages"] = pages
+                    document.pages = pages
+                    update_fields.append("pages")
 
-                Document.objects.filter(pk=document_id).update(**update_data)
+                document.save(update_fields=update_fields)
                 detect_text.send(document_id, force=not pages)
                 return JsonResponse({"success": True}, status=200)
 
