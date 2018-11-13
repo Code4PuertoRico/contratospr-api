@@ -54,7 +54,7 @@ case "$1" in
     done
     echo
 
-    dramatiq --watch ./contratospr --processes 2 $all_modules
+    dramatiq --watch ./contratospr --processes 1 $all_modules
     ;;
 
   *)

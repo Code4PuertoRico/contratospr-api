@@ -4,7 +4,6 @@ import re
 import dramatiq
 import pytz
 from django.conf import settings
-from django.db import transaction
 from dramatiq.rate_limits import ConcurrentRateLimiter
 from dramatiq.rate_limits.backends import RedisBackend
 
@@ -83,7 +82,6 @@ def expand_contract(contract):
 
 
 @dramatiq.actor
-@transaction.atomic
 def enhance_document(document_id):
     with DISTRIBUTED_MUTEX.acquire():
         document = Document.objects.get(pk=document_id)
@@ -96,7 +94,6 @@ def enhance_document(document_id):
 
 
 @dramatiq.actor
-@transaction.atomic
 def detect_text(document_id, force=False):
     # Use Cloud Vision API if no text was extracted with FilePreviews
     document = Document.objects.get(pk=document_id)
@@ -124,7 +121,6 @@ def request_contract_document(contract_id):
 
 
 @dramatiq.actor
-@transaction.atomic
 def update_contract(result, parent_id=None):
     entity, _ = Entity.objects.get_or_create(
         source_id=result["entity_id"], defaults={"name": result["entity_name"]}
