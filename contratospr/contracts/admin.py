@@ -48,7 +48,7 @@ class DocumentAdmin(admin.ModelAdmin):
     actions = ["detect_text"]
 
     def has_text(self, obj):
-        return len(obj.pages) > 0
+        return bool(obj.pages)
 
     has_text.boolean = True
 
