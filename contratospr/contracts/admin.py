@@ -44,6 +44,7 @@ class ContractorAdmin(admin.ModelAdmin):
 @admin.register(Document)
 class DocumentAdmin(admin.ModelAdmin):
     list_display = ["source_id", "has_text", "created_at", "modified_at"]
+    exclude = ["pages"]
     search_fields = ["source_id"]
     actions = ["detect_text"]
 
