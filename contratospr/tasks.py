@@ -5,6 +5,7 @@ import os
 import configurations
 import dramatiq
 from dramatiq.brokers.redis import RedisBroker
+from dramatiq.middleware import Middleware
 
 configuration = os.getenv("ENVIRONMENT", "development").title()
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "contratospr.settings")
@@ -12,6 +13,7 @@ os.environ.setdefault("DJANGO_CONFIGURATION", configuration)
 
 configurations.setup()
 
+from django import db  # noqa isort:skip
 from django.conf import settings  # noqa isort:skip
 
 
@@ -31,6 +33,16 @@ class DramatiqJSONEncoder(dramatiq.JSONEncoder):
         return json.dumps(data, separators=(",", ":"), cls=JSONEncoder).encode("utf-8")
 
 
-redis_broker = RedisBroker(url=settings.BROKER_URL)
-dramatiq.set_broker(redis_broker)
+class DbConnectionsMiddleware(Middleware):
+    def _close_connections(self, *args, **kwargs):
+        db.connections.close_all()
+
+    before_consumer_thread_shutdown = _close_connections
+    before_worker_thread_shutdown = _close_connections
+    before_worker_shutdown = _close_connections
+
+
+broker = RedisBroker(url=settings.BROKER_URL)
+broker.add_middleware(DbConnectionsMiddleware())
+dramatiq.set_broker(broker)
 dramatiq.set_encoder(DramatiqJSONEncoder())
