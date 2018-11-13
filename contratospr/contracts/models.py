@@ -101,14 +101,14 @@ class Document(BaseModel):
 
     def update_preview_data(self, data):
         with TemporaryFile() as temp_file:
-            temp_file.write(json.dumps(data))
+            temp_file.write(json.dumps(data).encode("utf-8"))
             temp_file.seek(0)
 
             self.preview_data_file.save("preview.json", File(temp_file), save=False)
 
     def update_vision_data(self, data):
         with TemporaryFile() as temp_file:
-            temp_file.write(json.dumps(data))
+            temp_file.write(json.dumps(data).encode("utf-8"))
             temp_file.seek(0)
 
             self.vision_data_file.save("vision.json", File(temp_file), save=False)
