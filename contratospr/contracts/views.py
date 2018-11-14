@@ -22,7 +22,8 @@ def entity(request, entity_id):
 
 
 def contract(request, contract_id):
-    contract = get_object_or_404(Contract, pk=contract_id)
+    queryset = Contract.objects.select_related("entity")
+    contract = get_object_or_404(queryset, pk=contract_id)
     context = {"contract": contract}
     return render(request, "contracts/contract.html", context)
 

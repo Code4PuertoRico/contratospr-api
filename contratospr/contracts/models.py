@@ -5,6 +5,8 @@ from tempfile import TemporaryFile
 import requests
 from django.conf import settings
 from django.contrib.postgres.fields import JSONField
+from django.contrib.postgres.indexes import GinIndex
+from django.contrib.postgres.search import SearchVectorField
 from django.core.files import File
 from django.db import models
 from django.utils.functional import cached_property
@@ -190,6 +192,11 @@ class Contract(BaseModel):
     exempt_id = models.CharField(max_length=255)
     contractors = models.ManyToManyField("Contractor")
     parent = models.ForeignKey("self", null=True, on_delete=models.CASCADE)
+
+    search_vector = SearchVectorField(null=True)
+
+    class Meta:
+        indexes = [GinIndex(fields=["search_vector"])]
 
     def __str__(self):
         if self.amendment:

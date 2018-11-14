@@ -2,16 +2,14 @@ FROM python:3.7
 
 ENV LANG en_US.utf8
 
-RUN pip install pipenv
+RUN pip install pipenv==2018.5.18
 
 WORKDIR /app/
 
 COPY Pipfile Pipfile.lock /app/
 
 # Install application requirements
-RUN pip install pipenv && \
-    pipenv install --deploy --system && \
-    pip uninstall -y pipenv && \
+RUN pipenv install --deploy --system && \
     rm -rf /root/.cache
 
 # Bundle app source

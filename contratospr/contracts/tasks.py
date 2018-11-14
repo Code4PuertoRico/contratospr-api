@@ -174,6 +174,8 @@ def update_contract(result, parent_id=None):
     for amendment_result in result["amendments"]:
         update_contract.send(amendment_result, parent_id=contract.pk)
 
+    index_contract(contract)
+
     return contract.pk
 
 

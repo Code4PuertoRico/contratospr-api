@@ -7,22 +7,13 @@
       <input type="text" name="q">
       <input type="submit">
     </form>
-    {% for hit in response %}
-      <p><a href="{% url 'contract' hit.meta.id %}">{{ hit.number }}</a></p>
-
-      {% if hit.meta.inner_hits.document %}
-        <p>Document</p>
-        {% with text=hit.meta.inner_hits.document.hits.hits.0.highlight|get:"document.text" %}
-          {{text|first|safe}}
-        {% endwith %}
-      {% endif %}
-
-      {% if hit.meta.inner_hits.contractors %}
-        <p>Contractor</p>
-        {% with contractor_name=hit.meta.inner_hits.contractors.hits.hits.0.highlight|get:"contractors.name" %}
-          {{contractor_name|first|safe}}
-        {% endwith %}
-      {% endif %}
+    {% for contract in response %}
+      <p><a href="{% url 'contract' contract.id %}">{{ contract }}</a></p>
+      <p><a href="{% url 'entity' contract.entity_id %}">{{ contract.entity }}</a></p>
+      <p>${{ contract.amount_to_pay }}</p>
+      <p>date_of_grant: {{ contract.date_of_grant|date }}</p>
+      <p>effective_date_from: {{ contract.effective_date_from|date }}</p>
+      <p>effective_date_to: {{ contract.effective_date_to|date }}</p>
       <hr>
     {% endfor %}
   </body>
