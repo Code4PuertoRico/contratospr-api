@@ -17,11 +17,12 @@ def index_contract(obj):
         Contract.objects.select_related("document", "entity")
         .prefetch_related("contractors")
         .annotate(search=search_vector)
-        .get(pk=obj.pk)
-    )
+        .filter(pk=obj.pk)
+    )[:1]
 
-    instance.search_vector = instance.search
-    return instance.save(update_fields=["search_vector"])
+    contract = instance[0]
+    contract.search_vector = contract.search
+    return contract.save(update_fields=["search_vector"])
 
 
 def search_contracts(query):

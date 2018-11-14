@@ -11,4 +11,5 @@ class Command(BaseCommand):
         contracts = Contract.objects.all().iterator()
 
         for contract in contracts:
+            self.stdout.write(f"Indexing contract {contract.id}")
             index_contract(contract)
