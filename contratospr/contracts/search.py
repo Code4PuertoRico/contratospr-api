@@ -5,14 +5,16 @@ from django.db.models.functions import Cast
 from ..utils.search import SearchVector
 from .models import Contract
 
-search_vector = SearchVector(Cast("document__pages", JSONField())) + SearchVector(
-    "contractors__name"
+search_vector = (
+    SearchVector(Cast("document__pages", JSONField()))
+    + SearchVector("contractors__name")
+    + SearchVector("entity__name")
 )
 
 
 def index_contract(obj):
     instance = (
-        Contract.objects.select_related("document")
+        Contract.objects.select_related("document", "entity")
         .prefetch_related("contractors")
         .annotate(search=search_vector)
         .get(pk=obj.pk)
