@@ -1,5 +1,6 @@
 import json
 
+from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.views.decorators.csrf import csrf_exempt
@@ -36,8 +37,10 @@ def contractor(request, contractor_id):
 
 def search(request):
     query = request.GET.get("q")
-    response = search_contracts(query=query) if query else None
-    context = {"response": response}
+    page = request.GET.get("page", 1)
+    contracts = search_contracts(query=query) if query else []
+    paginator = Paginator(contracts, 12)
+    context = {"contracts": paginator.get_page(page)}
     return render(request, "contracts/search.html", context)
 
 

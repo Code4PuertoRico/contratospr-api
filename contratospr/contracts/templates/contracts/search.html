@@ -7,7 +7,7 @@
       <input type="text" name="q">
       <input type="submit">
     </form>
-    {% for contract in response %}
+    {% for contract in contracts %}
       <p><a href="{% url 'contract' contract.id %}">{{ contract }}</a></p>
       <p><a href="{% url 'entity' contract.entity_id %}">{{ contract.entity }}</a></p>
       <p>${{ contract.amount_to_pay }}</p>
@@ -16,5 +16,25 @@
       <p>effective_date_to: {{ contract.effective_date_to|date }}</p>
       <hr>
     {% endfor %}
+
+    {% if contracts %}
+      <div class="pagination">
+        <span class="step-links">
+          {% if contracts.has_previous %}
+            <a href="?page=1">&laquo; first</a>
+            <a href="?page={{ contracts.previous_page_number }}">previous</a>
+          {% endif %}
+
+          <span class="current">
+            Page {{ contracts.number }} of {{ contracts.paginator.num_pages }}.
+          </span>
+
+          {% if contracts.has_next %}
+            <a href="?page={{ contracts.next_page_number }}">next</a>
+            <a href="?page={{ contracts.paginator.num_pages }}">last &raquo;</a>
+          {% endif %}
+        </span>
+      </div>
+    {% endif %}
   </body>
 </html>
