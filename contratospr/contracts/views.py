@@ -38,7 +38,9 @@ def contractor(request, contractor_id):
 def search(request):
     query = request.GET.get("q")
     page = request.GET.get("page", 1)
-    contracts = search_contracts(query=query) if query else []
+    contracts = [
+        contract for contract in (search_contracts(query=query) if query else [])
+    ]
     paginator = Paginator(contracts, 12)
     context = {"contracts": paginator.get_page(page)}
     return render(request, "contracts/search.html", context)

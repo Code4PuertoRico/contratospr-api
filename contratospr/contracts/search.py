@@ -27,8 +27,11 @@ def index_contract(obj):
 
 def search_contracts(query):
     return (
-        Contract.objects.select_related("document")
-        .prefetch_related("contractors")
-        .annotate(search=search_vector)
-        .filter(search=SearchQuery(query))
+        Contract.objects.select_related("document", "entity")
+        .defer(
+            "document__pages",
+            "document__preview_data_file",
+            "document__vision_data_file",
+        )
+        .filter(search_vector=SearchQuery(query))
     )
