@@ -126,6 +126,10 @@ class Common(Configuration):
 
     GOOGLE_APPLICATION_CREDENTIALS = values.Value(environ_prefix=None)
 
+    DEBUG_TOOLBAR_CONFIG = {
+        "SHOW_TOOLBAR_CALLBACK": "contratospr.utils.debug_toolbar.show_toolbar"
+    }
+
 
 class Development(Common):
     """
