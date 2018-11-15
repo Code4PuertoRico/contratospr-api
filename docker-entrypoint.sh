@@ -30,19 +30,6 @@ case "$1" in
     python manage.py runserver_plus 0.0.0.0:8000
     ;;
 
-  "start-web")
-    until postgres_ready; do
-      >&2 echo "==> Waiting for Postgres..."
-      sleep 1
-    done
-
-    echo "==> Running migrations..."
-    python manage.py collectstatic --no-input
-
-    echo "==> Running web server..."
-    uvicorn --host 0.0.0.0 --port 8000 --wsgi contratospr.wsgi:application
-    ;;
-
   "start-worker")
     tasks_packages=$(find ./contratospr -type d -name tasks | sed s':/:.:g' | sed s'/^..//' | xargs)
     tasks_modules=$(find ./contratospr -type f -name tasks.py | sed s':/:.:g' | sed s'/^..//' | sed s'/.py$//g' | xargs)
