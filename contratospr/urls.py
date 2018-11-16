@@ -1,4 +1,4 @@
-from django.conf import settings
+import debug_toolbar
 from django.contrib import admin
 from django.urls import include, path
 
@@ -13,6 +13,7 @@ from .contracts.views import (
 from .utils.views import liveness, readiness
 
 urlpatterns = [
+    path("__debug__/", include(debug_toolbar.urls)),
     path("admin/", admin.site.urls),
     path("api/webhooks/filepreviews/", filepreviews_webhook),
     path("health/liveness/", liveness),
@@ -23,8 +24,3 @@ urlpatterns = [
     path("contracts/<int:contract_id>/", contract, name="contract"),
     path("contractors/<int:contractor_id>/", contractor, name="contractor"),
 ]
-
-if settings.DEBUG:
-    import debug_toolbar
-
-    urlpatterns = [path("__debug__/", include(debug_toolbar.urls))] + urlpatterns
