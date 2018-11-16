@@ -1,8 +1,11 @@
+import datetime
 import json
 
 from django.core.paginator import Paginator
+from django.db.models import Sum
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render
+from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 
 from .models import Contract, Contractor, Document, Entity
@@ -11,7 +14,13 @@ from .tasks import detect_text
 
 
 def index(request):
-    return render(request, "contracts/index.html")
+    last_30_days = timezone.now() - datetime.timedelta(days=30)
+    contracts = Contract.objects.filter(date_of_grant__gte=last_30_days)
+    contracts_total = contracts.aggregate(total=Sum("amount_to_pay"))["total"]
+
+    context = {"contracts_count": contracts.count(), "contracts_total": contracts_total}
+
+    return render(request, "contracts/index.html", context)
 
 
 def entity(request, entity_id):

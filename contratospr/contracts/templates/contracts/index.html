@@ -1,5 +1,8 @@
 {% extends "base.html" %}
 
+{% load millify %}
+{% load humanize %}
+
 {% block content %}
 <div class="flex items-center justify-center min-h-screen">
   <div class="w-full max-w-md">
@@ -9,7 +12,7 @@
     {% include "contracts/partials/search.html" %}
 
     <div class="mt-2">
-      <p>$65k en los últimos 30 días</p>
+      <p>En los últimos 30 días se han otorgado <span class="font-bold text-grey-darkest">{{ contracts_count|intcomma }}</span> contratos para un total de <span class="font-bold text-grey-darkest">${{ contracts_total|millify }}</span>.</p>
     </div>
   </div>
 </div>
