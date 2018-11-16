@@ -1,40 +1,49 @@
-{% load get %}
+{% extends "base.html" %}
 
-<html>
-  <head></head>
-  <body>
-    <form action="" method="GET">
-      <input type="text" name="q">
-      <input type="submit">
-    </form>
-    {% for contract in contracts %}
-      <p><a href="{% url 'contract' contract.id %}">{{ contract }}</a></p>
-      <p><a href="{% url 'entity' contract.entity_id %}">{{ contract.entity }}</a></p>
-      <p>${{ contract.amount_to_pay }}</p>
-      <p>date_of_grant: {{ contract.date_of_grant|date }}</p>
-      <p>effective_date_from: {{ contract.effective_date_from|date }}</p>
-      <p>effective_date_to: {{ contract.effective_date_to|date }}</p>
-      <hr>
-    {% endfor %}
+{% load humanize %}
+{% load millify %}
 
-    {% if contracts %}
-      <div class="pagination">
-        <span class="step-links">
+{% block content %}
+<div class="flex self-start justify-center min-h-screen">
+  <div class="w-full max-w-md mb-4">
+    <h1 class="mb-2">
+      <a class="no-underline text-grey-darkest hover:text-black" href="{% url 'index' %}">Contratos de Puerto Rico</a>
+    </h1>
+    {% include "contracts/partials/search.html" with query=query %}
+
+    <div class="mt-2">
+      {% for contract in contracts %}
+        <div class="mb-4 py-4 border-b border-grey-light">
+          <p class="text-black font-bold text-xl">
+            <a class="no-underline font-bold text-grey-darker hover:text-black" href="{% url 'contract' contract.id %}">
+              ${{ contract.amount_to_pay|millify }} - <span class="text-grey">{{ contract }}</span>
+            </a>
+          </p>
+          <p class="text-grey-darker"><a class="no-underline text-grey-darker hover:text-black" href="{% url 'entity' contract.entity_id %}">{{ contract.entity }}</a></p>
+          <p class="text-grey-darker">Otorgado: {{ contract.date_of_grant|date }}</p>
+        </div>
+      {% endfor %}
+
+      {% if contracts %}
+        <div class="text-center">
           {% if contracts.has_previous %}
-            <a href="?page=1">&laquo; first</a>
-            <a href="?page={{ contracts.previous_page_number }}">previous</a>
+            <a class="no-underline text-blue hover:text-blue-darker mr-2" href="?q={{ query }}&page={{ contracts.previous_page_number }}">&larr; previous</a>
           {% endif %}
 
-          <span class="current">
-            Page {{ contracts.number }} of {{ contracts.paginator.num_pages }}.
-          </span>
+          {% for n in contracts.paginator.page_range %}
+            {% if contracts.number == n %}
+              <span class="font-bold text-blue-darker mr-2">{{ n }}</span>
+            {% elif n > contracts.number|add:'-3' and n < contracts.number|add:'3' %}
+              <a class="no-underline text-blue hover:text-blue-darker mr-2" href="?q={{ query }}&page={{ n }}">{{ n }}</a>
+            {% endif %}
+          {% endfor %}
 
           {% if contracts.has_next %}
-            <a href="?page={{ contracts.next_page_number }}">next</a>
-            <a href="?page={{ contracts.paginator.num_pages }}">last &raquo;</a>
+            <a class="no-underline text-blue hover:text-blue-darker" href="?q={{ query }}&page={{ contracts.next_page_number }}">next &rarr;</a>
           {% endif %}
-        </span>
-      </div>
-    {% endif %}
-  </body>
-</html>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock content %}

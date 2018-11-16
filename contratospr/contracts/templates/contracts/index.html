@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="flex items-center justify-center min-h-screen">
+  <div class="w-full max-w-md">
+    <h1 class="mb-2">
+      <a class="no-underline text-grey-darkest hover:text-black" href="{% url 'index' %}">Contratos de Puerto Rico</a>
+    </h1>
+    {% include "contracts/partials/search.html" %}
+
+    <div class="mt-2">
+      <p>$65k en los últimos 30 días</p>
+    </div>
+  </div>
+</div>
+{% endblock content %}

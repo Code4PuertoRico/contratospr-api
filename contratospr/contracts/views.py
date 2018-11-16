@@ -11,9 +11,7 @@ from .tasks import detect_text
 
 
 def index(request):
-    entities = Entity.objects.all()
-    context = {"entities": entities}
-    return render(request, "contracts/entities.html", context)
+    return render(request, "contracts/index.html")
 
 
 def entity(request, entity_id):
@@ -42,7 +40,7 @@ def search(request):
         contract for contract in (search_contracts(query=query) if query else [])
     ]
     paginator = Paginator(contracts, 12)
-    context = {"contracts": paginator.get_page(page)}
+    context = {"contracts": paginator.get_page(page), "query": query}
     return render(request, "contracts/search.html", context)
 
 

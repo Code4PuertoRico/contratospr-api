@@ -1,0 +1,23 @@
+{
+  "name": "tracking-contratos-pr",
+  "version": "1.0.0",
+  "description": "Gather data from the [\"Consulta del Registro de Contratos\"](https://consultacontratos.ocpr.gov.pr/) to enable independent research and analysis.",
+  "main": "index.js",
+  "scripts": {
+    "build": "tailwind build ./static/css/tailwind.css -o ./static/css/styles.css"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TheIndexingProject/tracking-contratos-pr.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/TheIndexingProject/tracking-contratos-pr/issues"
+  },
+  "homepage": "https://github.com/TheIndexingProject/tracking-contratos-pr#readme",
+  "devDependencies": {
+    "tailwindcss": "^0.7.2"
+  }
+}

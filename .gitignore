@@ -89,4 +89,4 @@ local_settings.py
 db.sqlite3
 staticfiles
 
-kubernetes/secrets.yaml
+node_modules

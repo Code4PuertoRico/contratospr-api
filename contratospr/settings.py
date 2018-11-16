@@ -31,6 +31,7 @@ class Common(Configuration):
         "django.contrib.contenttypes",
         "django.contrib.sessions",
         "django.contrib.messages",
+        "django.contrib.humanize",
         "whitenoise.runserver_nostatic",
         "django.contrib.staticfiles",
         "django_extensions",
@@ -58,7 +59,7 @@ class Common(Configuration):
     TEMPLATES = [
         {
             "BACKEND": "django.template.backends.django.DjangoTemplates",
-            "DIRS": [],
+            "DIRS": [os.path.join(BASE_DIR, "templates")],
             "APP_DIRS": True,
             "OPTIONS": {
                 "context_processors": [
@@ -106,6 +107,7 @@ class Common(Configuration):
     # https://docs.djangoproject.com/en/2.1/howto/static-files/
     STATIC_URL = "/static/"
     STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+    STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
     STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
     AUTH_USER_MODEL = "users.User"
