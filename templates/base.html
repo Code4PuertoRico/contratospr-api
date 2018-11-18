@@ -1,9 +1,10 @@
 {% load static %}
+
 <!DOCTYPE html>
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>{% block title %}Contratos PR{% endblock title %}</title>
+  <title>{% block title %}Contratos de Puerto Rico{% endblock title %}</title>
   <meta name="description" content="">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -11,5 +12,11 @@
 </head>
 <body class="font-sans font-normal text-black leading-normal">
   {% block content %}{% endblock content %}
+
+  <div class="text-center text-sm text-grey-dark my-4">
+    <p>This website is open-source and not affiliated with the Government of Puerto Rico.</p>
+    <p>Built by <a class="text-grey-dark" href="https://jpadilla.com">José Padilla</a>.</p>
+  </div>
+
 </body>
 </html>

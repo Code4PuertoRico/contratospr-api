@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% load millify %}
+{% load humanize %}
+
+{% block content %}
+<div class="container mx-auto">
+  {% include "common/header.html" %}
+
+  <div class="flex self-start justify-center">
+    <div class="w-full max-w-lg mb-4">
+      {% include "contracts/partials/search.html" with url="contractors" query=query placeholder="Busca por contratista" %}
+
+      <div class="mt-4">
+        <p>Se encontraron <span class="font-bold text-grey-darkest">{{ contractors.paginator.count|intcomma }}</span> contratistas.</p>
+      </div>
+
+      <div class="mt-2">
+        {% for contractor in contractors %}
+          <a href="{% url 'contractor' contractor.slug %}" class="block py-4 border-b border-grey-light no-underline hover:bg-grey-lightest">
+            <div class="text-xl font-bold text-grey-darkest">
+              {{ contractor }}
+            </div>
+            <div class="text-grey-darkest">Contratos: {{ contractor.contracts_count }}</div>
+            <div class="text-grey-darkest">Cuantía: ${{ contractor.contracts_total|millify }}</div>
+          </a>
+        {% endfor %}
+
+        {% if contractors.number %}
+          <div class="mt-4 text-center">
+            {% if contractors.has_previous %}
+              <a class="no-underline text-blue hover:text-blue-darker mr-2" href="?q={{ query }}&page={{ contractors.previous_page_number }}">&larr; anterior</a>
+            {% endif %}
+
+            {% for n in contractors.paginator.page_range %}
+              {% if contractors.number == n %}
+                <span class="font-bold text-blue-darker mr-2">{{ n }}</span>
+              {% elif n > contractors.number|add:'-3' and n < contractors.number|add:'3' %}
+                <a class="no-underline text-blue hover:text-blue-darker mr-2" href="?q={{ query }}&page={{ n }}">{{ n }}</a>
+              {% endif %}
+            {% endfor %}
+
+            {% if contractors.has_next %}
+              <a class="no-underline text-blue hover:text-blue-darker" href="?q={{ query }}&page={{ contractors.next_page_number }}">siguiente &rarr;</a>
+            {% endif %}
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}

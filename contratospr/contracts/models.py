@@ -10,6 +10,7 @@ from django.contrib.postgres.search import SearchVectorField
 from django.core.files import File
 from django.db import models
 from django.utils.functional import cached_property
+from django_extensions.db.fields import AutoSlugField
 from django_s3_storage.storage import S3Storage
 from filepreviews import FilePreviews
 from google.cloud import vision
@@ -36,6 +37,7 @@ def document_file_path(instance, filename):
 class Entity(BaseModel):
     name = models.CharField(max_length=255)
     source_id = models.PositiveIntegerField(unique=True)
+    slug = AutoSlugField(populate_from="name")
 
     class Meta:
         verbose_name_plural = "Entities"
@@ -43,10 +45,27 @@ class Entity(BaseModel):
     def __str__(self):
         return self.name
 
+    @property
+    def contracts_count(self):
+        return self.contract_set.count()
+
+    @property
+    def contracts_total(self):
+        return sum([contract.amount_to_pay for contract in self.contract_set.all()])
+
+
+class ServiceGroup(BaseModel):
+    name = models.CharField(max_length=255)
+    slug = AutoSlugField(populate_from="name")
+
+    def __str__(self):
+        return self.name
+
 
 class Service(BaseModel):
     name = models.CharField(max_length=255)
-    group = models.CharField(max_length=255)
+    group = models.ForeignKey("ServiceGroup", null=True, on_delete=models.SET_NULL)
+    slug = AutoSlugField(populate_from="name")
 
     class Meta:
         unique_together = ("name", "group")
@@ -171,9 +190,18 @@ class Contractor(BaseModel):
     name = models.CharField(max_length=255)
     source_id = models.PositiveIntegerField(unique=True)
     entity_id = models.PositiveIntegerField(blank=True, null=True)
+    slug = AutoSlugField(populate_from=["name", "source_id"])
 
     def __str__(self):
         return self.name
+
+    @property
+    def contracts_count(self):
+        return self.contract_set.count()
+
+    @property
+    def contracts_total(self):
+        return sum([contract.amount_to_pay for contract in self.contract_set.all()])
 
 
 class Contract(BaseModel):
@@ -181,6 +209,7 @@ class Contract(BaseModel):
     source_id = models.PositiveIntegerField(unique=True)
     number = models.CharField(max_length=255)
     amendment = models.CharField(max_length=255, blank=True, null=True)
+    slug = AutoSlugField(populate_from=["number", "amendment", "source_id"])
     date_of_grant = models.DateTimeField()
     effective_date_from = models.DateTimeField()
     effective_date_to = models.DateTimeField()

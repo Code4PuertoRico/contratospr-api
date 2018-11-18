@@ -1,0 +1,20 @@
+<nav class="flex items-center justify-between flex-wrap pb-6 border-b my-6">
+  <div class="flex items-center flex-no-shrink mr-6">
+    <h1 class="tracking-tight">
+      <a class="no-underline text-grey-darkest hover:text-black" href="{% url 'index' %}">Contratos de Puerto Rico</a>
+    </h1>
+  </div>
+  <div class="flex">
+    <div class="flex-grow">
+        <a href="{% url 'search' %}" class="mr-4 no-underline font-bold inline-block text-grey-darkest hover:text-black hover:underline">
+          Buscar
+        </a>
+      <a href="{% url 'entities' %}" class="mr-4 no-underline font-bold inline-block text-grey-darkest hover:text-black hover:underline">
+        Entidades
+      </a>
+      <a href="{% url 'contractors' %}" class="no-underline font-bold inline-block text-grey-darkest hover:text-black hover:underline">
+        Contratistas
+      </a>
+    </div>
+  </div>
+</nav>

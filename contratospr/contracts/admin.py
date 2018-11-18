@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Contract, Contractor, Document, Entity, Service
+from .models import Contract, Contractor, Document, Entity, Service, ServiceGroup
 
 
 @admin.register(Contract)
@@ -8,6 +8,7 @@ class ContractAdmin(admin.ModelAdmin):
     list_display = [
         "number",
         "amendment",
+        "slug",
         "source_id",
         "date_of_grant",
         "service",
@@ -37,7 +38,7 @@ class ContractAdmin(admin.ModelAdmin):
 
 @admin.register(Contractor)
 class ContractorAdmin(admin.ModelAdmin):
-    list_display = ["name", "source_id", "created_at", "modified_at"]
+    list_display = ["name", "slug", "source_id", "created_at", "modified_at"]
     search_fields = ["name", "source_id"]
 
 
@@ -67,11 +68,17 @@ class DocumentAdmin(admin.ModelAdmin):
 
 @admin.register(Entity)
 class EntityAdmin(admin.ModelAdmin):
-    list_display = ["name", "source_id", "created_at", "modified_at"]
+    list_display = ["name", "slug", "source_id", "created_at", "modified_at"]
     search_fields = ["name", "source_id"]
 
 
 @admin.register(Service)
 class ServiceAdmin(admin.ModelAdmin):
-    list_display = ["name", "group", "created_at", "modified_at"]
+    list_display = ["name", "slug", "group", "created_at", "modified_at"]
     search_fields = ["name", "group"]
+
+
+@admin.register(ServiceGroup)
+class ServiceGroupAdmin(admin.ModelAdmin):
+    list_display = ["name", "slug", "created_at", "modified_at"]
+    search_fields = ["name"]

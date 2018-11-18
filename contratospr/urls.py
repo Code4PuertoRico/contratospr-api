@@ -5,6 +5,8 @@ from django.urls import include, path
 from .contracts.views import (
     contract,
     contractor,
+    contractors,
+    entities,
     entity,
     filepreviews_webhook,
     index,
@@ -19,8 +21,10 @@ urlpatterns = [
     path("health/liveness/", liveness),
     path("health/readiness/", readiness),
     path("", index, name="index"),
-    path("search/", search, name="search"),
-    path("entities/<int:entity_id>/", entity, name="entity"),
-    path("contracts/<int:contract_id>/", contract, name="contract"),
-    path("contractors/<int:contractor_id>/", contractor, name="contractor"),
+    path("buscar/", search, name="search"),
+    path("entidades/", entities, name="entities"),
+    path("entidades/<slug:entity_slug>/", entity, name="entity"),
+    path("contratos/<slug:contract_slug>/", contract, name="contract"),
+    path("contratistas/", contractors, name="contractors"),
+    path("contratistas/<slug:contractor_slug>/", contractor, name="contractor"),
 ]

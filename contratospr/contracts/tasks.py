@@ -7,7 +7,7 @@ from django.conf import settings
 from dramatiq.rate_limits import ConcurrentRateLimiter
 from dramatiq.rate_limits.backends import RedisBackend
 
-from .models import Contract, Contractor, Document, Entity, Service
+from .models import Contract, Contractor, Document, Entity, Service, ServiceGroup
 from .scraper import (
     BASE_CONTRACT_URL,
     get_amendments,
@@ -126,8 +126,10 @@ def update_contract(result, parent_id=None):
         source_id=result["entity_id"], defaults={"name": result["entity_name"]}
     )
 
+    service_group, _ = ServiceGroup.objects.get_or_create(name=result["service_group"])
+
     service, _ = Service.objects.get_or_create(
-        name=result["service"], group=result["service_group"]
+        name=result["service"], group=service_group
     )
 
     contract_data = {

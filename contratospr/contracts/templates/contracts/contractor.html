@@ -1,13 +1,86 @@
-<html>
-  <head></head>
-  <body>
-    <h1>{{ contractor }}</h1>
+{% extends "base.html" %}
 
-    <h2>Contracts</h2>
-    <ul>
-      {% for contract in contractor.contract_set.all %}
-        <li><a href="{% url 'contract' contract.id %}">{{ contract }} - {{ contract.amount_to_pay }}</a></li>
-      {% endfor %}
-      </ul>
-  </body>
-</html>
+{% load humanize %}
+{% load static %}
+{% load millify %}
+
+{% block content %}
+<div class="container mx-auto">
+  {% include "common/header.html" %}
+
+  <div class="flex self-start justify-center">
+    <div class="w-full mb-4">
+
+      <div class="flex">
+        <div class="flex-1 py-2 m-2 border-r text-lg text-grey-darkest">
+          <h2 class="mb-2">{{ contractor }}</h2>
+
+          <p class="font-bold">Contratos</p>
+          <p class="mb-2">{{ contracts_count }}</p>
+
+          <p class="font-bold">Cuantía</p>
+          <p class="mb-2">${{ contracts_total|intcomma }}</p>
+
+          <h3 class="mt-4 mb-2">Servicios</h3>
+          <ul class="list-reset">
+            {% for service in services %}
+              <li>
+                <a href="{% url 'search' %}?service={{ service.pk }}" class="text-grey-darkest hover:text-black">
+                  {{ service|title }}
+                </a>
+              </li>
+            {% endfor %}
+          </ul>
+
+          <h3 class="mt-4 mb-2">Entidades</h3>
+          <ul class="list-reset">
+            {% for entity in entities %}
+              <li>
+                <a href="{% url 'entity' entity.slug %}" class="text-grey-darkest hover:text-black">
+                  {{ entity }}
+                </a>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+        <div class="flex-1 py-2 m-2 text-lg text-grey-darkest">
+          <div class="flex justify-between items-center mb-2">
+            <div class="flex-1">
+              <h2>Contratos</h2>
+            </div>
+          </div>
+
+          <div class="mt-2 mb-4">
+            <canvas id="chart"></canvas>
+          </div>
+
+          <div class="overflow-y-auto max-h-screen mt-2 border-t border-b">
+            {% for contract in contracts %}
+              <a href="{% url 'contract' contract.slug %}" class="block py-4 border-b border-grey-light no-underline hover:bg-grey-lightest">
+                <div class="text-xl font-bold text-grey-darkest" href="{% url 'contract' contract.slug %}">
+                  {{ contract }} <span class="text-base text-grey-darker">${{ contract.amount_to_pay|millify }}</span>
+                </div>
+                <div class="text-grey-darkest">Tipo de servicio: {{ contract.service.name|title }}</div>
+                <div class="text-grey-darkest">Entidad: {{ contract.entity }}</div>
+                <div class="text-grey-darkest">Otorgado: {{ contract.date_of_grant|date }}</div>
+              </a>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="{% static 'js/app.js' %}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.bundle.min.js"></script>
+
+{{ chart_data|json_script:"chart-data" }}
+
+<script>
+  var chartData = JSON.parse(document.getElementById('chart-data').textContent);
+  window.onload = function() {
+    window.myLine = initializeChart('chart', chartData);
+  };
+</script>
+{% endblock content %}

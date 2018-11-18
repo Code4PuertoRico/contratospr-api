@@ -1,26 +1,88 @@
-<html>
-  <head></head>
-  <body>
-    <h1>{{ contract }}</h1>
-    <p>${{ contract.amount_to_pay }}</p>
-    <p>{{ contract.entity }}</p>
-    <p>date_of_grant: {{ contract.date_of_grant }}</p>
-    <p>effective_date_from: {{ contract.effective_date_from }}</p>
-    <p>effective_date_to: {{ contract.effective_date_to }}</p>
+{% extends "base.html" %}
 
-    <h2>Contractors</h2>
-    <ul>
-      {% for contractor in contract.contractors.all %}
-        <li><a href="{% url 'contractor' contractor.id %}">{{ contractor }}</a></li>
-      {% endfor %}
-    </ul>
+{% load millify %}
+{% load humanize %}
 
-    {% if contract.document %}
-      <h2>Document</h2>
-      <p>{{ contract.document.source_url }}</p>
-      {% for page in contract.document.pages %}
-        <p>{{ page.number }} - {{ page.text }}</p>
-      {% endfor %}
-    {% endif %}
-  </body>
-</html>
+{% block content %}
+<div class="container mx-auto">
+  {% include "common/header.html" %}
+
+  <div class="flex self-start justify-center">
+    <div class="w-full mb-4">
+
+      <div class="flex">
+        <div class="flex-1 px-4 py-2 m-2 border-r text-lg text-grey-darkest">
+          <h2 class="mb-2">{{ contract }}</h2>
+
+          <p class="font-bold">Cuantía</p>
+          <p class="mb-2">${{ contract.amount_to_pay|intcomma }}</p>
+
+          <p class="font-bold">Categoría de servicio</p>
+          <p class="mb-2">
+            <a class="text-grey-darkest hover:text-black" href="{% url 'search' %}?service={{ contract.service_id }}">
+              {{ contract.service.group|title }}
+            </a>
+          </p>
+
+          <p class="font-bold">Tipo de servicio</p>
+          <p class="mb-2">
+            <a class="text-grey-darkest hover:text-black" href="{% url 'search' %}?service={{ contract.service_id }}">
+              {{ contract.service.name|title }}
+            </a>
+          </p>
+
+          <p class="font-bold">Entidad</p>
+          <p class="mb-2">
+            <a class="text-grey-darkest hover:text-black" href="{% url 'entity' contract.entity.slug %}">
+              {{ contract.entity }}
+            </a>
+          </p>
+
+          <p class="font-bold">Otorgado</p>
+          <p class="mb-2">{{ contract.date_of_grant|date }}</p>
+
+          <p class="font-bold">Vigencia</p>
+          <p class="mb-2">{{ contract.effective_date_from|date }} - {{ contract.effective_date_to|date }}</p>
+
+          <h3 class="mt-4 mb-2">Contratistas</h3>
+          <ul class="list-reset">
+            {% for contractor in contractors %}
+              <li>
+                <a class="text-grey-darkest hover:text-black" href="{% url 'contractor' contractor.slug %}">
+                  {{ contractor }}
+                </a>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+        <div class="flex-1 px-4 py-2 m-2 text-lg text-grey-darkest">
+          <div class="flex justify-between items-center mb-2">
+            <div class="flex-1">
+              <h2>Documento</h2>
+            </div>
+            {% if contract.document %}
+              <div class="flex-1 text-right">
+                <a href="{{ contract.document.source_url }}" target="_blank" class="no-underline bg-grey-light hover:bg-grey text-grey-darkest font-bold py-1 px-2 rounded">
+                  <svg class="fill-current w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M13 8V2H7v6H2l8 8 8-8h-5zM0 18h20v2H0v-2z"/></svg>
+                </a>
+              </div>
+            {% endif %}
+          </div>
+
+          <div class="overflow-y-auto max-h-screen mt-2 py-2 border-t border-b">
+            {% if contract.document %}
+              {% for page in contract.document.pages %}
+                <p class="font-serif text-base">{{ page.text|linebreaksbr }}</p>
+              {% endfor %}
+            {% else %}
+              <div class="bg-orange-lightest border-l-4 border-orange text-sm text-orange-dark p-4" role="alert">
+                <p>Aún no tenemos copia del contrato.</p>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}

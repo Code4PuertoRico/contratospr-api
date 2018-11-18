@@ -25,13 +25,25 @@ def index_contract(obj):
     return contract.save(update_fields=["search_vector"])
 
 
-def search_contracts(query):
+def search_contracts(query, service_id):
+    filter_kwargs = {}
+
+    if query:
+        filter_kwargs["search_vector"] = SearchQuery(query)
+
+    if service_id:
+        filter_kwargs["service_id"] = service_id
+
+    if not filter_kwargs:
+        return []
+
     return (
-        Contract.objects.select_related("document", "entity")
+        Contract.objects.select_related("document", "entity", "service")
+        .prefetch_related("contractors")
         .defer(
             "document__pages",
             "document__preview_data_file",
             "document__vision_data_file",
         )
-        .filter(search_vector=SearchQuery(query))
+        .filter(**filter_kwargs)
     )
