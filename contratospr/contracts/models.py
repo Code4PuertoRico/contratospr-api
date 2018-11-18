@@ -55,7 +55,7 @@ class Entity(BaseModel):
 
 
 class ServiceGroup(BaseModel):
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, unique=True)
     slug = AutoSlugField(populate_from="name")
 
     def __str__(self):
