@@ -31,19 +31,25 @@ def get_chart_data(contracts):
 
 def index(request):
     last_90_days = timezone.now() - datetime.timedelta(days=90)
-    contracts = Contract.objects.filter(date_of_grant__gte=last_90_days)
+    contracts = (
+        Contract.objects.prefetch_related("contractors")
+        .select_related("entity")
+        .filter(date_of_grant__gte=last_90_days)
+    )
     contracts_total = contracts.aggregate(total=Sum("amount_to_pay"))["total"]
 
     recent_contracts = contracts.order_by("-date_of_grant")[:5]
 
     contractors = (
-        Contractor.objects.annotate(total=Sum("contract__amount_to_pay"))
+        Contractor.objects.prefetch_related("contract_set")
+        .annotate(total=Sum("contract__amount_to_pay"))
         .all()
         .order_by("-total")
     )[:5]
 
     entities = (
-        Entity.objects.annotate(total=Sum("contract__amount_to_pay"))
+        Entity.objects.prefetch_related("contract_set")
+        .annotate(total=Sum("contract__amount_to_pay"))
         .all()
         .order_by("-total")
     )[:5]
