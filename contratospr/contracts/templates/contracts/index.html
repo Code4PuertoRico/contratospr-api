@@ -4,70 +4,66 @@
 {% load humanize %}
 
 {% block content %}
-<div class="container mx-auto">
-  {% include "common/header.html" %}
+<div class="my-4 mt-8 sm:mt-16">
+  <p class="text-xl text-center">En los últimos 90 días se han otorgado <span class="font-bold text-grey-darkest">{{ contracts_count|intcomma }}</span> contratos por un total de <span class="font-bold text-grey-darkest">${{ contracts_total|millify }}</span>.</p>
+</div>
 
-  <div class="my-4 mt-16">
-    <p class="text-xl text-center">En los últimos 90 días se han otorgado <span class="font-bold text-grey-darkest">{{ contracts_count|intcomma }}</span> contratos por un total de <span class="font-bold text-grey-darkest">${{ contracts_total|millify }}</span>.</p>
+<div class="flex items-center justify-center">
+  <div class="w-full max-w-lg">
+    {% include "contracts/partials/search.html" with url="search" placeholder="Busca contratos por entidad gubernamental, contratista, o palabra clave" %}
   </div>
+</div>
 
-  <div class="flex items-center justify-center">
-    <div class="w-full max-w-lg">
-      {% include "contracts/partials/search.html" with url="search" placeholder="Busca contratos por entidad gubernamental, contratista, o palabra clave" %}
+<div class="flex items-center justify-center mt-8 sm:mt-16">
+  <div class="lg:flex w-full">
+    <div class="lg:w-1/3 mb-4 sm:mr-2 border rounded border-grey-light">
+      <h3 class="p-2 text-center border-b border-grey-light">Contratos</h3>
+      {% for contract in recent_contracts %}
+        <a href="{% url 'contract' contract.slug %}" class="flex sm:h-32 p-2 border-b border-grey-light no-underline hover:bg-grey-lightest">
+          <div class="flex-1 self-center">
+            <div class="font-bold text-grey-darkest">
+              {{ contract }} <span class="text-base text-grey-darker">${{ contract.amount_to_pay|millify }}</span>
+            </div>
+            <div class="text-grey-darkest">Otorgado: {{ contract.date_of_grant|date }}</div>
+            <div class="text-grey-darkest">Entidad: {{ contract.entity|truncatechars:40 }}</div>
+            <div class="text-grey-darkest">
+              Contratistas:
+              {% for contractor in contract.contractors.all %}
+                {{ contractor }} {% if not forloop.last %}, {% endif %}
+              {% endfor %}
+            </div>
+          </div>
+        </a>
+      {% endfor %}
     </div>
-  </div>
+    <div class="lg:w-1/3 mb-4 sm:mr-2 border rounded border-grey-light">
+      <h3 class="p-2 text-center border-b border-grey-light">Contratistas</h3>
+      {% for contractor in contractors %}
+        <a href="{% url 'contractor' contractor.slug %}" class="flex sm:h-32 p-2 border-b border-grey-light no-underline hover:bg-grey-lightest">
+          <div class="flex-1 self-center">
+            <div class="font-bold text-grey-darkest">
+              {{ contractor|truncatechars:48 }}
+            </div>
+            <div class="text-grey-darkest">Contratos: {{ contractor.contracts_count }}</div>
+            <div class="text-grey-darkest">Cuantía: ${{ contractor.contracts_total|millify }}</div>
+          </div>
+        </a>
+      {% endfor %}
 
-  <div class="flex items-center justify-center my-16">
-    <div class="flex w-full">
-      <div class="w-1/3 mr-2 border rounded border-grey-light">
-        <h3 class="p-2 text-center border-b border-grey-light">Contratos</h3>
-        {% for contract in recent_contracts %}
-          <a href="{% url 'contract' contract.slug %}" class="flex h-32 p-2 border-b border-grey-light no-underline hover:bg-grey-lightest">
-            <div class="flex-1 self-center">
-              <div class="font-bold text-grey-darkest">
-                {{ contract }} <span class="text-base text-grey-darker">${{ contract.amount_to_pay|millify }}</span>
-              </div>
-              <div class="text-grey-darkest">Otorgado: {{ contract.date_of_grant|date }}</div>
-              <div class="text-grey-darkest">Entidad: {{ contract.entity|truncatechars:40 }}</div>
-              <div class="text-grey-darkest">
-                Contratistas:
-                {% for contractor in contract.contractors.all %}
-                  {{ contractor }} {% if not forloop.last %}, {% endif %}
-                {% endfor %}
-              </div>
+    </div>
+    <div class="lg:w-1/3 mb-4 border rounded border-grey-light">
+      <h3 class="p-2 text-center border-b border-grey-light">Entidades</h3>
+      {% for entity in entities %}
+        <a href="{% url 'entity' entity.slug %}" class="flex sm:h-32 p-2 border-b border-grey-light no-underline hover:bg-grey-lightest">
+          <div class="flex-1 self-center">
+            <div class="font-bold text-grey-darkest">
+              {{ entity|truncatechars:48 }}
             </div>
-          </a>
-        {% endfor %}
-      </div>
-      <div class="w-1/3 mr-2 border rounded border-grey-light">
-        <h3 class="p-2 text-center border-b border-grey-light">Contratistas</h3>
-        {% for contractor in contractors %}
-          <a href="{% url 'contractor' contractor.slug %}" class="flex h-32 p-2 border-b border-grey-light no-underline hover:bg-grey-lightest">
-            <div class="flex-1 self-center">
-              <div class="font-bold text-grey-darkest">
-                {{ contractor|truncatechars:48 }}
-              </div>
-              <div class="text-grey-darkest">Contratos: {{ contractor.contracts_count }}</div>
-              <div class="text-grey-darkest">Cuantía: ${{ contractor.contracts_total|millify }}</div>
-            </div>
-          </a>
-        {% endfor %}
-
-      </div>
-      <div class="w-1/3 border rounded border-grey-light">
-        <h3 class="p-2 text-center border-b border-grey-light">Entidades</h3>
-        {% for entity in entities %}
-          <a href="{% url 'entity' entity.slug %}" class="flex h-32 p-2 border-b border-grey-light no-underline hover:bg-grey-lightest">
-            <div class="flex-1 self-center">
-              <div class="font-bold text-grey-darkest">
-                {{ entity|truncatechars:48 }}
-              </div>
-              <div class="text-grey-darkest">Contratos: {{ entity.contracts_count }}</div>
-              <div class="text-grey-darkest">Cuantía: ${{ entity.contracts_total|millify }}</div>
-            </div>
-          </a>
-        {% endfor %}
-      </div>
+            <div class="text-grey-darkest">Contratos: {{ entity.contracts_count }}</div>
+            <div class="text-grey-darkest">Cuantía: ${{ entity.contracts_total|millify }}</div>
+          </div>
+        </a>
+      {% endfor %}
     </div>
   </div>
 </div>

@@ -4,55 +4,51 @@
 {% load humanize %}
 
 {% block content %}
-<div class="container mx-auto">
-  {% include "common/header.html" %}
+<div class="flex self-start justify-center">
+  <div class="w-full max-w-lg mb-4">
+    {% include "contracts/partials/search.html" with url="search" query=query placeholder="Busca contratos por entidad gubernamental, contratista, o palabra clave" %}
 
-  <div class="flex self-start justify-center">
-    <div class="w-full max-w-lg mb-4">
-      {% include "contracts/partials/search.html" with url="search" query=query placeholder="Busca contratos por entidad gubernamental, contratista, o palabra clave" %}
+    <div class="mt-4">
+      <p>Se encontraron <span class="font-bold text-grey-darkest">{{ contracts.paginator.count|intcomma }}</span> contratos.</p>
+    </div>
 
-      <div class="mt-4">
-        <p>Se encontraron <span class="font-bold text-grey-darkest">{{ contracts.paginator.count|intcomma }}</span> contratos.</p>
-      </div>
-
-      <div class="mt-2">
-        {% for contract in contracts %}
-          <a href="{% url 'contract' contract.slug %}" class="block py-4 border-b border-grey-light no-underline hover:bg-grey-lightest">
-            <div class="text-xl font-bold text-grey-darkest">
-              {{ contract }} <span class="text-base text-grey-darker">${{ contract.amount_to_pay|millify }}</span>
-            </div>
-            <div class="text-grey-darkest">Tipo de servicio: {{ contract.service.name|title }}</div>
-            <div class="text-grey-darkest">Entidad: {{ contract.entity }}</div>
-            <div class="text-grey-darkest">Otorgado: {{ contract.date_of_grant|date }}</div>
-            <div class="text-grey-darkest">
-              Contratistas:
-              {% for contractor in contract.contractors.all %}
-                {{ contractor }} {% if not forloop.last %}, {% endif %}
-              {% endfor %}
-            </div>
-          </a>
-        {% endfor %}
-
-        {% if contracts %}
-          <div class="text-center mt-4">
-            {% if contracts.has_previous %}
-              <a class="no-underline text-blue hover:text-blue-darker mr-2" href="?q={{ query }}&page={{ contracts.previous_page_number }}">&larr; anterior</a>
-            {% endif %}
-
-            {% for n in contracts.paginator.page_range %}
-              {% if contracts.number == n %}
-                <span class="font-bold text-blue-darker mr-2">{{ n }}</span>
-              {% elif n > contracts.number|add:'-3' and n < contracts.number|add:'3' %}
-                <a class="no-underline text-blue hover:text-blue-darker mr-2" href="?q={{ query }}&page={{ n }}">{{ n }}</a>
-              {% endif %}
-            {% endfor %}
-
-            {% if contracts.has_next %}
-              <a class="no-underline text-blue hover:text-blue-darker" href="?q={{ query }}&page={{ contracts.next_page_number }}">siguiente &rarr;</a>
-            {% endif %}
+    <div class="mt-2">
+      {% for contract in contracts %}
+        <a href="{% url 'contract' contract.slug %}" class="block py-4 border-b border-grey-light no-underline hover:bg-grey-lightest">
+          <div class="text-xl font-bold text-grey-darkest">
+            {{ contract }} <span class="text-base text-grey-darker">${{ contract.amount_to_pay|millify }}</span>
           </div>
-        {% endif %}
-      </div>
+          <div class="text-grey-darkest">Tipo de servicio: {{ contract.service.name|title }}</div>
+          <div class="text-grey-darkest">Entidad: {{ contract.entity }}</div>
+          <div class="text-grey-darkest">Otorgado: {{ contract.date_of_grant|date }}</div>
+          <div class="text-grey-darkest">
+            Contratistas:
+            {% for contractor in contract.contractors.all %}
+              {{ contractor }} {% if not forloop.last %}, {% endif %}
+            {% endfor %}
+          </div>
+        </a>
+      {% endfor %}
+
+      {% if contracts %}
+        <div class="text-center mt-4">
+          {% if contracts.has_previous %}
+            <a class="no-underline text-blue hover:text-blue-darker mr-2" href="?q={{ query }}&page={{ contracts.previous_page_number }}">&larr; anterior</a>
+          {% endif %}
+
+          {% for n in contracts.paginator.page_range %}
+            {% if contracts.number == n %}
+              <span class="font-bold text-blue-darker mr-2">{{ n }}</span>
+            {% elif n > contracts.number|add:'-3' and n < contracts.number|add:'3' %}
+              <a class="no-underline text-blue hover:text-blue-darker mr-2" href="?q={{ query }}&page={{ n }}">{{ n }}</a>
+            {% endif %}
+          {% endfor %}
+
+          {% if contracts.has_next %}
+            <a class="no-underline text-blue hover:text-blue-darker" href="?q={{ query }}&page={{ contracts.next_page_number }}">siguiente &rarr;</a>
+          {% endif %}
+        </div>
+      {% endif %}
     </div>
   </div>
 </div>

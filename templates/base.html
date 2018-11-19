@@ -9,14 +9,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <link href="{% static 'css/styles.css' %}" rel="stylesheet" type="text/css"/>
+  {% block extra_head %}{% endblock %}
 </head>
 <body class="font-sans font-normal text-black leading-normal">
-  {% block content %}{% endblock content %}
+  <div class="container mx-auto px-2 sm:p-0">
+    {% include "common/header.html" %}
+    {% block content %}{% endblock content %}
 
-  <div class="text-center text-sm text-grey-dark my-4">
-    <p>This website is open-source and not affiliated with the Government of Puerto Rico.</p>
-    <p>Built by <a class="text-grey-dark" href="https://jpadilla.com">José Padilla</a>.</p>
+    <div class="text-center text-sm text-grey-dark my-4">
+      <p>This website is open-source and not affiliated with the Government of Puerto Rico.</p>
+      <p>Built by <a class="text-grey-dark" href="https://jpadilla.com">José Padilla</a>.</p>
+    </div>
   </div>
 
+  {% block extra_body %}{% endblock %}
+  {% include "common/analytics.html" %}
 </body>
 </html>
