@@ -9,6 +9,7 @@ search_vector = (
     SearchVector(Cast("document__pages", JSONField()))
     + SearchVector("contractors__name")
     + SearchVector("entity__name")
+    + SearchVector("number")
 )
 
 
