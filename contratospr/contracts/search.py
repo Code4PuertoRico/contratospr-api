@@ -47,4 +47,5 @@ def search_contracts(query, service_id):
             "document__vision_data_file",
         )
         .filter(**filter_kwargs)
+        .order_by("-date_of_grant")
     )
