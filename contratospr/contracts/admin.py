@@ -18,8 +18,9 @@ class ContractAdmin(admin.ModelAdmin):
     ]
 
     search_fields = ["source_id", "number"]
-
+    exclude = ["search_vector"]
     actions = ["request_document"]
+    raw_id_fields = ["entity", "service", "document", "contractors", "parent"]
 
     def has_document(self, obj):
         return bool(obj.document_id)
