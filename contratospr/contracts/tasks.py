@@ -25,7 +25,7 @@ def parse_date(value):
     if not value:
         return None
 
-    ms = int(re.search("\d+", value).group())
+    ms = int(re.search(r"\d+", value).group())
     return datetime.datetime.utcfromtimestamp(ms // 1000).replace(tzinfo=pytz.UTC)
 
 
