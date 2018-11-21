@@ -10,6 +10,6 @@ install:
   - pipenv install --dev
 
 script:
-  - pipenv run black --check .
-  - pipenv run isort --recursive --check-only --diff
-  - pipenv run flake8
+  - black --check .
+  - isort --recursive --check-only --diff
+  - flake8
