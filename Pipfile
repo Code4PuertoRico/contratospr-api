@@ -4,6 +4,9 @@ verify_ssl = true
 name = "pypi"
 
 [dev-packages]
+black = "*"
+isort = "*"
+"flake8" = "*"
 
 [packages]
 dj-database-url = "==0.5.0"
