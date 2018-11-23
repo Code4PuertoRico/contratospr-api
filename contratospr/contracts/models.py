@@ -10,8 +10,8 @@ from django.contrib.postgres.search import SearchVectorField
 from django.core.files import File
 from django.db import models
 from django.utils.functional import cached_property
+from django.utils.module_loading import import_string
 from django_extensions.db.fields import AutoSlugField
-from django_s3_storage.storage import S3Storage
 from filepreviews import FilePreviews
 from google.cloud import vision
 from google.oauth2.service_account import Credentials
@@ -19,10 +19,18 @@ from google.protobuf.json_format import MessageToDict
 
 from ..utils.models import BaseModel
 
+if settings.FILEPREVIEWS_API_KEY and settings.FILEPREVIEWS_API_SECRET:
+    filepreviews = FilePreviews(
+        api_key=settings.FILEPREVIEWS_API_KEY,
+        api_secret=settings.FILEPREVIEWS_API_SECRET,
+    )
+else:
+    filepreviews = None
+
 service_account_info = json.loads(settings.GOOGLE_APPLICATION_CREDENTIALS)
 credentials = Credentials.from_service_account_info(service_account_info)
 
-s3_storage = S3Storage()
+document_storage = import_string(settings.CONTRACTS_DOCUMENT_STORAGE)()
 
 
 def get_filename_from_content_disposition(value):
@@ -78,17 +86,17 @@ class Document(BaseModel):
     source_id = models.PositiveIntegerField(unique=True)
     source_url = models.URLField()
     file = models.FileField(
-        blank=True, null=True, upload_to=document_file_path, storage=s3_storage
+        blank=True, null=True, upload_to=document_file_path, storage=document_storage
     )
 
     pages = JSONField(blank=True, null=True)
 
     preview_data_file = models.FileField(
-        blank=True, null=True, upload_to=document_file_path, storage=s3_storage
+        blank=True, null=True, upload_to=document_file_path, storage=document_storage
     )
 
     vision_data_file = models.FileField(
-        blank=True, null=True, upload_to=document_file_path, storage=s3_storage
+        blank=True, null=True, upload_to=document_file_path, storage=document_storage
     )
 
     def __str__(self):
@@ -135,13 +143,8 @@ class Document(BaseModel):
             self.vision_data_file.save("vision.json", File(temp_file), save=False)
 
     def generate_preview(self):
-        if self.file:
-            fp = FilePreviews(
-                api_key=settings.FILEPREVIEWS_API_KEY,
-                api_secret=settings.FILEPREVIEWS_API_SECRET,
-            )
-
-            response = fp.generate(
+        if self.file and filepreviews:
+            response = filepreviews.generate(
                 self.file.url,
                 pages="all",
                 metadata=["ocr"],

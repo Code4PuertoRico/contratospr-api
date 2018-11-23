@@ -88,5 +88,6 @@ local_settings.py
 .env
 db.sqlite3
 staticfiles
+media
 
 node_modules

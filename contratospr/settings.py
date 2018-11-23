@@ -132,6 +132,8 @@ class Common(Configuration):
         "SHOW_TOOLBAR_CALLBACK": "contratospr.utils.debug_toolbar.show_toolbar"
     }
 
+    CONTRACTS_DOCUMENT_STORAGE = "django_s3_storage.storage.S3Storage"
+
 
 class Development(Common):
     """
@@ -143,6 +145,9 @@ class Development(Common):
     ALLOWED_HOSTS = []
 
     INTERNAL_IPS = ["127.0.0.1"]
+
+    CONTRACTS_DOCUMENT_STORAGE = "django.core.files.storage.FileSystemStorage"
+    MEDIA_ROOT = os.path.join(Common.BASE_DIR, "media")
 
 
 class Staging(Common):
