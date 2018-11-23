@@ -9,7 +9,17 @@
 
     <div class="flex flex-wrap">
       <div class="w-full sm:flex-1 px-4 py-2 m-2 border-none border-r sm:border-solid sm:border-grey-light text-lg text-grey-darkest">
-        <h2 class="mb-2">{{ contract }}</h2>
+        <h2 class="mb-2">{{ contract.number }}</h2>
+
+        {% if contract.parent %}
+          <p class="font-bold">Enmienda</p>
+          <p class="mb-2">
+            {{ contract.amendment }} -
+            <a class="text-grey-darkest hover:text-black" href="{% url 'contract' contract.parent.slug %}">
+              Contrato original
+            </a>
+          </p>
+        {% endif %}
 
         <p class="font-bold">Cuantía</p>
         <p class="mb-2">${{ contract.amount_to_pay|intcomma }}</p>
@@ -40,6 +50,19 @@
 
         <p class="font-bold">Vigencia</p>
         <p class="mb-2">{{ contract.effective_date_from|date }} - {{ contract.effective_date_to|date }}</p>
+
+        {% if contract.has_amendments %}
+          <p class="font-bold">Enmiendas</p>
+          <ul class="list-reset">
+            {% for contract in contract.amendments %}
+              <li>
+                <a class="text-grey-darkest hover:text-black" href="{% url 'contract' contract.slug %}">
+                  {{ contract }}
+                </a>
+              </li>
+            {% endfor %}
+          </ul>
+        {% endif %}
 
         <h3 class="mt-4 mb-2">Contratistas</h3>
         <ul class="list-reset">

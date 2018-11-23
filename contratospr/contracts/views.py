@@ -2,6 +2,7 @@ import datetime
 import json
 from collections import defaultdict
 
+from django import forms
 from django.core.paginator import Paginator
 from django.db.models import Sum
 from django.http import JsonResponse
@@ -12,6 +13,15 @@ from django.views.decorators.csrf import csrf_exempt
 from .models import Contract, Contractor, Document, Entity, Service
 from .search import search_contracts
 from .tasks import detect_text
+
+
+class HomeForm(forms.Form):
+    dias = forms.TypedChoiceField(
+        choices=[(30, "30 días"), (60, "60 días"), (90, "90 días"), (120, "120 días")],
+        required=True,
+        coerce=int,
+        initial=90,
+    )
 
 
 def get_chart_data(contracts):
@@ -30,11 +40,18 @@ def get_chart_data(contracts):
 
 
 def index(request):
-    last_90_days = timezone.now() - datetime.timedelta(days=90)
+    now = timezone.now()
+    form = HomeForm(request.POST) if request.method == "POST" else HomeForm()
+
+    if form.is_valid():
+        last_x_days = now - datetime.timedelta(days=form.cleaned_data["dias"])
+    else:
+        last_x_days = now - datetime.timedelta(days=90)
+
     contracts = (
         Contract.objects.prefetch_related("contractors")
         .select_related("entity")
-        .filter(date_of_grant__gte=last_90_days)
+        .filter(parent=None, date_of_grant__lte=now, date_of_grant__gte=last_x_days)
     )
     contracts_total = contracts.aggregate(total=Sum("amount_to_pay"))["total"]
 
@@ -43,18 +60,27 @@ def index(request):
     contractors = (
         Contractor.objects.prefetch_related("contract_set")
         .annotate(total=Sum("contract__amount_to_pay"))
-        .all()
+        .filter(
+            contract__parent=None,
+            contract__date_of_grant__lte=now,
+            contract__date_of_grant__gte=last_x_days,
+        )
         .order_by("-total")
     )[:5]
 
     entities = (
         Entity.objects.prefetch_related("contract_set")
         .annotate(total=Sum("contract__amount_to_pay"))
-        .all()
+        .filter(
+            contract__parent=None,
+            contract__date_of_grant__lte=now,
+            contract__date_of_grant__gte=last_x_days,
+        )
         .order_by("-total")
     )[:5]
 
     context = {
+        "form": form,
         "recent_contracts": recent_contracts,
         "contractors": contractors,
         "entities": entities,
@@ -73,7 +99,6 @@ def entity(request, entity_slug):
     contracts = (
         entity.contract_set.prefetch_related("contractors")
         .select_related("service")
-        .all()
         .order_by("-date_of_grant")
     )
 
@@ -99,7 +124,7 @@ def entity(request, entity_slug):
 
 def contract(request, contract_slug):
     queryset = Contract.objects.prefetch_related("contractors").select_related(
-        "entity", "service"
+        "entity", "service", "parent", "parent"
     )
     contract = get_object_or_404(queryset, slug=contract_slug)
     contractors = contract.contractors.all().order_by("name")
@@ -114,7 +139,7 @@ def contractor(request, contractor_slug):
         "contract_set", "contract_set__service", "contract_set__entity"
     )
     contractor = get_object_or_404(queryset, slug=contractor_slug)
-    contracts = contractor.contract_set.all()
+    contracts = contractor.contract_set.filter(parent=None)
     contracts_total = contracts.aggregate(total=Sum("amount_to_pay"))["total"]
     services = Service.objects.filter(
         pk__in=[contract.service_id for contract in contracts]

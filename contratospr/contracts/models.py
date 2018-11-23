@@ -232,3 +232,7 @@ class Contract(BaseModel):
             return f"{self.number} - {self.amendment}"
 
         return f"{self.number}"
+
+    @property
+    def amendments(self):
+        return Contract.objects.filter(parent=self)
