@@ -131,7 +131,7 @@ To contribute code:
 * Make any necessary changes to the source code.
 * Include any [additional documentation](#contribute-documentation) the changes might need.
 * Write tests that verify that your contribution works as expected.
-* Write clear, concise commit message(s) using [conventional-changelog format](https://github.com/conventional-changelog/conventional-changelog-angular/blob/master/convention.md).
+* Write clear, concise commit message(s).
 * Dependency updates, additions, or removals must be in individual commits.
 * Go to https://github.com/TheIndexingProject/tracking-contratos-pr/pulls and open a new pull request with your changes.
 * If your PR is connected to an open issue, add a line in your PR's description that says `Fixes: #123`, where `#123` is the number of the issue you're fixing.
