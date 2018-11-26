@@ -24,7 +24,7 @@ services:
   worker:
     build: .
     command: start-worker
-    entrypoint: /app/docker-entrypoint.sh
+    entrypoint: /app/bin/docker-entrypoint
     env_file:
       - .env
     volumes:
@@ -35,8 +35,8 @@ services:
 
   web:
     build: .
-    command: start-web-dev
-    entrypoint: /app/docker-entrypoint.sh
+    command: start-web
+    entrypoint: /app/bin/docker-entrypoint
     env_file:
       - .env
     volumes:

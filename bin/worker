@@ -1,0 +1,14 @@
+#!/bin/bash
+
+cd "$(dirname "$0")/.." || exit
+
+tasks_packages=$(find ./contratospr -type d -name tasks | sed s':/:.:g' | sed s'/^..//' | xargs)
+tasks_modules=$(find ./contratospr -type f -name tasks.py | sed s':/:.:g' | sed s'/^..//' | sed s'/.py$//g' | xargs)
+all_modules="$tasks_packages $tasks_modules"
+
+echo "Discovered tasks modules:"
+for module in $all_modules; do
+  echo "  * ${module}"
+done
+
+dramatiq --watch ./contratospr --processes 1 $all_modules
