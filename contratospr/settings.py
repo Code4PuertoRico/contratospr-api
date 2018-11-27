@@ -110,7 +110,7 @@ class Common(Configuration):
     STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
     STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
-    MEDIA_ROOT = os.path.join(Common.BASE_DIR, "media")
+    MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
     AUTH_USER_MODEL = "users.User"
 
@@ -143,6 +143,7 @@ class Development(Common):
 
     INTERNAL_IPS = ["127.0.0.1"]
 
+
 class Staging(Common):
     """
     The in-staging settings.
@@ -164,12 +165,14 @@ class Production(Staging):
     """
     The in-production settings.
     """
+
     AWS_REGION = values.Value("us-east-1", environ_prefix=None)
     AWS_ACCESS_KEY_ID = values.SecretValue(environ_prefix=None)
     AWS_SECRET_ACCESS_KEY = values.SecretValue(environ_prefix=None)
     AWS_S3_BUCKET_NAME = values.Value(environ_prefix=None)
 
     CONTRACTS_DOCUMENT_STORAGE = "django_s3_storage.storage.S3Storage"
+
 
 class Kubernetes(Production):
     ALLOWED_HOSTS = ["*"]
