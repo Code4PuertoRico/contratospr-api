@@ -1,9 +1,0 @@
-{
-  "[python]": {
-    "editor.formatOnSave": true,
-    "editor.codeActionsOnSave": {
-      "source.organizeImports": true
-    }
-  },
-  "python.pythonPath": "/Users/jpadilla/.local/share/virtualenvs/tracking-contratos-pr-KXbAT-d2/bin/python"
-}
