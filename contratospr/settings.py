@@ -55,7 +55,6 @@ class Common(Configuration):
     ]
 
     ROOT_URLCONF = "contratospr.urls"
-
     TEMPLATES = [
         {
             "BACKEND": "django.template.backends.django.DjangoTemplates",
