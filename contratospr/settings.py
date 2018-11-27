@@ -122,6 +122,8 @@ class Common(Configuration):
     FILEPREVIEWS_API_KEY = values.Value(environ_prefix=None)
     FILEPREVIEWS_API_SECRET = values.Value(environ_prefix=None)
 
+    GOOGLE_APPLICATION_CREDENTIALS = values.Value(environ_prefix=None)
+
     DEBUG_TOOLBAR_CONFIG = {
         "SHOW_TOOLBAR_CALLBACK": "contratospr.utils.debug_toolbar.show_toolbar"
     }
@@ -167,8 +169,6 @@ class Production(Staging):
     AWS_ACCESS_KEY_ID = values.SecretValue(environ_prefix=None)
     AWS_SECRET_ACCESS_KEY = values.SecretValue(environ_prefix=None)
     AWS_S3_BUCKET_NAME = values.Value(environ_prefix=None)
-
-    GOOGLE_APPLICATION_CREDENTIALS = values.Value(environ_prefix=None)
 
     CONTRACTS_DOCUMENT_STORAGE = "django_s3_storage.storage.S3Storage"
 
