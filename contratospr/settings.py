@@ -55,7 +55,6 @@ class Common(Configuration):
     ]
 
     ROOT_URLCONF = "contratospr.urls"
-
     TEMPLATES = [
         {
             "BACKEND": "django.template.backends.django.DjangoTemplates",
@@ -110,6 +109,8 @@ class Common(Configuration):
     STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
     STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
+    MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+
     AUTH_USER_MODEL = "users.User"
 
     REDIS_URL = values.Value(environ_prefix=None)
@@ -117,11 +118,6 @@ class Common(Configuration):
     @property
     def BROKER_URL(self):
         return f"{self.REDIS_URL}/0"
-
-    AWS_REGION = values.Value("us-east-1", environ_prefix=None)
-    AWS_ACCESS_KEY_ID = values.SecretValue(environ_prefix=None)
-    AWS_SECRET_ACCESS_KEY = values.SecretValue(environ_prefix=None)
-    AWS_S3_BUCKET_NAME = values.Value(environ_prefix=None)
 
     FILEPREVIEWS_API_KEY = values.Value(environ_prefix=None)
     FILEPREVIEWS_API_SECRET = values.Value(environ_prefix=None)
@@ -132,7 +128,7 @@ class Common(Configuration):
         "SHOW_TOOLBAR_CALLBACK": "contratospr.utils.debug_toolbar.show_toolbar"
     }
 
-    CONTRACTS_DOCUMENT_STORAGE = "django_s3_storage.storage.S3Storage"
+    CONTRACTS_DOCUMENT_STORAGE = "django.core.files.storage.FileSystemStorage"
 
 
 class Development(Common):
@@ -145,9 +141,6 @@ class Development(Common):
     ALLOWED_HOSTS = []
 
     INTERNAL_IPS = ["127.0.0.1"]
-
-    CONTRACTS_DOCUMENT_STORAGE = "django.core.files.storage.FileSystemStorage"
-    MEDIA_ROOT = os.path.join(Common.BASE_DIR, "media")
 
 
 class Staging(Common):
@@ -171,6 +164,13 @@ class Production(Staging):
     """
     The in-production settings.
     """
+
+    AWS_REGION = values.Value("us-east-1", environ_prefix=None)
+    AWS_ACCESS_KEY_ID = values.SecretValue(environ_prefix=None)
+    AWS_SECRET_ACCESS_KEY = values.SecretValue(environ_prefix=None)
+    AWS_S3_BUCKET_NAME = values.Value(environ_prefix=None)
+
+    CONTRACTS_DOCUMENT_STORAGE = "django_s3_storage.storage.S3Storage"
 
 
 class Kubernetes(Production):
