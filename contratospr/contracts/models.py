@@ -27,8 +27,11 @@ if settings.FILEPREVIEWS_API_KEY and settings.FILEPREVIEWS_API_SECRET:
 else:
     filepreviews = None
 
-service_account_info = json.loads(settings.GOOGLE_APPLICATION_CREDENTIALS)
-credentials = Credentials.from_service_account_info(service_account_info)
+if settings.GOOGLE_APPLICATION_CREDENTIALS:
+    service_account_info = json.loads(settings.GOOGLE_APPLICATION_CREDENTIALS)
+    credentials = Credentials.from_service_account_info(service_account_info)
+else:
+    credentials = None
 
 document_storage = import_string(settings.CONTRACTS_DOCUMENT_STORAGE)()
 
@@ -156,7 +159,7 @@ class Document(BaseModel):
             self.save(update_fields=["preview_data_file"])
 
     def detect_text(self):
-        if self.preview_data and self.preview_data["thumbnails"]:
+        if self.preview_data and self.preview_data["thumbnails"] and credentials:
             client = vision.ImageAnnotatorClient(credentials=credentials)
             results = []
             pages = []
