@@ -127,7 +127,7 @@ class Common(Configuration):
         "SHOW_TOOLBAR_CALLBACK": "contratospr.utils.debug_toolbar.show_toolbar"
     }
 
-    CONTRACTS_DOCUMENT_STORAGE = "django_s3_storage.storage.S3Storage"
+    CONTRACTS_DOCUMENT_STORAGE = "django.core.files.storage.FileSystemStorage"
 
 
 class Development(Common):
@@ -141,7 +141,6 @@ class Development(Common):
 
     INTERNAL_IPS = ["127.0.0.1"]
 
-    CONTRACTS_DOCUMENT_STORAGE = "django.core.files.storage.FileSystemStorage"
     MEDIA_ROOT = os.path.join(Common.BASE_DIR, "media")
 
 
@@ -170,6 +169,8 @@ class Production(Staging):
     AWS_ACCESS_KEY_ID = values.SecretValue(environ_prefix=None)
     AWS_SECRET_ACCESS_KEY = values.SecretValue(environ_prefix=None)
     AWS_S3_BUCKET_NAME = values.Value(environ_prefix=None)
+
+    CONTRACTS_DOCUMENT_STORAGE = "django_s3_storage.storage.S3Storage"
 
 class Kubernetes(Production):
     ALLOWED_HOSTS = ["*"]
