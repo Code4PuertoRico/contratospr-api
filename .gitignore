@@ -91,3 +91,5 @@ staticfiles
 media
 
 node_modules
+
+.vscode/
