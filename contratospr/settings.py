@@ -110,6 +110,8 @@ class Common(Configuration):
     STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
     STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
+    MEDIA_ROOT = os.path.join(Common.BASE_DIR, "media")
+
     AUTH_USER_MODEL = "users.User"
 
     REDIS_URL = values.Value(environ_prefix=None)
@@ -140,9 +142,6 @@ class Development(Common):
     ALLOWED_HOSTS = []
 
     INTERNAL_IPS = ["127.0.0.1"]
-
-    MEDIA_ROOT = os.path.join(Common.BASE_DIR, "media")
-
 
 class Staging(Common):
     """
