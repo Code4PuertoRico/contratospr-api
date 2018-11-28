@@ -58,7 +58,7 @@ class Entity(BaseModel):
 
     @property
     def contracts_count(self):
-        return self.contract_set.count()
+        return self.contract_set.filter(parent=None).count()
 
     @property
     def contracts_total(self):
@@ -203,7 +203,7 @@ class Contractor(BaseModel):
 
     @property
     def contracts_count(self):
-        return self.contract_set.count()
+        return self.contract_set.filter(parent=None).count()
 
     @property
     def contracts_total(self):
