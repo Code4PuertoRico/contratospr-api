@@ -76,7 +76,7 @@ class EntityAdmin(admin.ModelAdmin):
 @admin.register(Service)
 class ServiceAdmin(admin.ModelAdmin):
     list_display = ["name", "slug", "group", "created_at", "modified_at"]
-    search_fields = ["name", "group"]
+    search_fields = ["name", "group__name"]
 
 
 @admin.register(ServiceGroup)
