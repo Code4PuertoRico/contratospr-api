@@ -14,6 +14,8 @@ from .models import Contract, Contractor, Document, Entity, Service
 from .search import search_contracts
 from .tasks import detect_text
 
+ITEMS_PER_PAGE = 20
+
 
 class HomeForm(forms.Form):
     dias = forms.TypedChoiceField(
@@ -29,7 +31,7 @@ def get_chart_data(contracts):
     chart_data_groups = defaultdict(list)
 
     for contract in contracts:
-        chart_data_groups[contract.date_of_grant].append(contract.amount_to_pay)
+        chart_data_groups[contract.date_of_grant.date()].append(contract.amount_to_pay)
 
     for date_of_grant, amounts in chart_data_groups.items():
         chart_data.append(
@@ -166,7 +168,7 @@ def search(request):
     service_id = request.GET.get("service")
     page = request.GET.get("page", 1)
     contracts = search_contracts(query=query, service_id=service_id)
-    paginator = Paginator(contracts, 12)
+    paginator = Paginator(contracts, ITEMS_PER_PAGE)
     context = {"contracts": paginator.get_page(page), "query": query}
     return render(request, "contracts/search.html", context)
 
@@ -179,7 +181,7 @@ def entities(request):
     if query:
         entities = entities.filter(name__icontains=query)
 
-    paginator = Paginator(entities, 12)
+    paginator = Paginator(entities, ITEMS_PER_PAGE)
     context = {"entities": paginator.get_page(page), "query": query}
     return render(request, "contracts/entities.html", context)
 
@@ -194,7 +196,7 @@ def contractors(request):
     if query:
         contractors = contractors.filter(name__icontains=query)
 
-    paginator = Paginator(contractors, 12)
+    paginator = Paginator(contractors, ITEMS_PER_PAGE)
     context = {"contractors": paginator.get_page(page), "query": query}
     return render(request, "contracts/contractors.html", context)
 
