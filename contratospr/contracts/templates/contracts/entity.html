@@ -37,9 +37,9 @@
           <canvas id="chart" height="100"></canvas>
         </div>
 
-        <div class="sm:overflow-y-scroll sm:max-h-screen mt-2 border-t border-b">
+        <div id="contracts-list" class="sm:overflow-y-scroll sm:max-h-screen mt-2 border-t border-b">
           {% for contract in contracts %}
-            <a href="{% url 'contract' contract.slug %}" class="block py-4 border-b border-grey-light no-underline hover:bg-grey-lightest">
+            <a href="{% url 'contract' contract.slug %}" class="block py-4 border-b border-grey-light no-underline hover:bg-grey-lightest" data-date="{{ contract.date_of_grant|date:'Y-m-d' }}">
               <div class="text-xl font-bold text-grey-darkest">
                 {{ contract }} <span class="text-base text-grey-darker">${{ contract.amount_to_pay|millify }}</span>
               </div>

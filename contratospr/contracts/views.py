@@ -31,7 +31,7 @@ def get_chart_data(contracts):
     chart_data_groups = defaultdict(list)
 
     for contract in contracts:
-        chart_data_groups[contract.date_of_grant].append(contract.amount_to_pay)
+        chart_data_groups[contract.date_of_grant.date()].append(contract.amount_to_pay)
 
     for date_of_grant, amounts in chart_data_groups.items():
         chart_data.append(
