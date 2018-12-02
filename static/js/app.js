@@ -68,8 +68,8 @@ function initializeChart(chartId, data) {
         ]
       },
       onClick: function(e) {
-        var firstPoint = chart.getElementAtEvent(e)[0];
-        var dataset = chart.data.datasets[0];
+        var firstPoint = this.getElementAtEvent(e)[0];
+        var dataset = this.data.datasets[0];
 
         var contractsElements = document
           .getElementById('contracts-list')
