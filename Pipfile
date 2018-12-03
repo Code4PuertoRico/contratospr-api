@@ -25,6 +25,12 @@ filepreviews = "==2.0.2"
 google-cloud-vision = "==0.34.0"
 uvicorn = "==0.3.17"
 Werkzeug = "==0.14.1"
+djangorestframework = "==3.9.0"
+django-filter = "==2.0.0"
+django-crispy-forms = "==1.7.2"
+coreapi = "==2.3.3"
+pygments = "==2.3.0"
+markdown = "==3.0.1"
 
 [requires]
 python_version = "3.7"
