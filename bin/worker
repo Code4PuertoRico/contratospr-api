@@ -11,4 +11,4 @@ for module in $all_modules; do
   echo "  * ${module}"
 done
 
-dramatiq --watch ./contratospr --processes 1 $all_modules
+dramatiq --processes 1 $1 $all_modules
