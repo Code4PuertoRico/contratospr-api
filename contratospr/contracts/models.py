@@ -51,6 +51,7 @@ class Entity(BaseModel):
     slug = AutoSlugField(populate_from="name")
 
     class Meta:
+        ordering = ["name"]
         verbose_name_plural = "Entities"
 
     def __str__(self):
@@ -69,6 +70,9 @@ class ServiceGroup(BaseModel):
     name = models.CharField(max_length=255, unique=True)
     slug = AutoSlugField(populate_from="name")
 
+    class Meta:
+        ordering = ["name"]
+
     def __str__(self):
         return self.name
 
@@ -79,6 +83,7 @@ class Service(BaseModel):
     slug = AutoSlugField(populate_from="name")
 
     class Meta:
+        ordering = ["name"]
         unique_together = ("name", "group")
 
     def __str__(self):
@@ -197,6 +202,9 @@ class Contractor(BaseModel):
     source_id = models.PositiveIntegerField(unique=True)
     entity_id = models.PositiveIntegerField(blank=True, null=True)
     slug = AutoSlugField(populate_from=["name", "source_id"])
+
+    class Meta:
+        ordering = ["name"]
 
     def __str__(self):
         return self.name

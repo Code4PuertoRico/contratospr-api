@@ -37,8 +37,12 @@ class Common(Configuration):
         "django_extensions",
         "debug_toolbar",
         "django_s3_storage",
+        "django_filters",
+        "crispy_forms",
+        "rest_framework",
         "contratospr.users",
         "contratospr.contracts",
+        "contratospr.api",
         "contratospr.utils",
     ]
 
@@ -129,6 +133,11 @@ class Common(Configuration):
     }
 
     CONTRACTS_DOCUMENT_STORAGE = "django.core.files.storage.FileSystemStorage"
+
+    REST_FRAMEWORK = {
+        "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+        "PAGE_SIZE": 100,
+    }
 
 
 class Development(Common):
