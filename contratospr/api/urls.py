@@ -12,6 +12,10 @@ from .views import (
 )
 
 router = DefaultRouter()
+api_root_view = router.get_api_root_view()
+api_root_view.cls.__name__ = "Contratos de Puerto Rico"
+api_root_view.cls.__doc__ = ""
+
 router.register(r"contracts", ContractViewSet)
 router.register(r"documents", DocumentViewSet)
 router.register(r"contractors", ContractorViewSet)
