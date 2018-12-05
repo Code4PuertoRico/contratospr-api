@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% load humanize %}
+
+{% block content %}
+  <div>
+  <h2>Año Fiscal - {{ a.fiscal_year }}</h2>
+  <hr>
+  <p>Total de Contratos: {{ a.contracts_count }}</p>
+  <p>Monto Total de Contratos: ${{ a.contracts_total_amount|intcomma }}</p>
+  <p>Promedio Monto por Contrato: ${{ a.contracts_average|floatformat:2|intcomma }}</p>
+  <p>Media de Contratos: ${{ a.contracts_median|intcomma }}</p>
+  <p>Servicios Por Debajo de la Media: {{ a.services_below_median }}</p>
+  <p>Servicios Sobre de la Media: {{ a.services_above_median }}</p>
+  <p>Total de Contratistas: {{ a.contractors_count }}</p>
+  </div>
+
+  <div>
+  <h2>Año Fiscal - {{ b.fiscal_year }}</h2>
+  <hr>
+  <p>Total de Contratos: {{ b.contracts_count }}</p>
+  <p>Monto Total de Contratos: ${{ b.contracts_total_amount|intcomma }}</p>
+  <p>Promedio Monto por Contrato: ${{ b.contracts_average|floatformat:2|intcomma }}</p>
+  <p>Media de Contratos: ${{ b.contracts_median|intcomma }}</p>
+  <p>Servicios Por Debajo de la Media: {{ b.services_below_median }}</p>
+  <p>Servicios Sobre de la Media: {{ b.services_above_median }}</p>
+  <p>Total de Contratistas: {{ b.contractors_count }}</p>
+  </div>
+{% endblock content %}
+
