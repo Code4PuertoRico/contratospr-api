@@ -1,5 +1,6 @@
 import datetime
 import json
+import statistics
 from collections import defaultdict
 
 from django import forms
@@ -199,6 +200,78 @@ def contractors(request):
     paginator = Paginator(contractors, ITEMS_PER_PAGE)
     context = {"contractors": paginator.get_page(page), "query": query}
     return render(request, "contracts/contractors.html", context)
+
+
+def get_trend(fiscal_year):
+    start_date = timezone.make_aware(datetime.datetime(fiscal_year, 7, 1))
+    end_date = timezone.make_aware(datetime.datetime(fiscal_year + 1, 6, 30))
+    contracts = Contract.objects.filter(
+        effective_date_from__gte=start_date, effective_date_from__lte=end_date
+    ).only("amount_to_pay", "service_id")
+
+    contracts_count = len(contracts)
+    contracts_total = 0
+    contracts_average = 0
+    contractors_count = 0
+    contracts_median = 0
+
+    if contracts_count:
+        amounts_to_pay = [contract.amount_to_pay for contract in contracts]
+        contracts_total = sum(amounts_to_pay)
+        contracts_average = contracts_total / contracts_count
+        contractors_count = Contractor.objects.filter(contract__in=contracts).count()
+        contracts_median = statistics.median(amounts_to_pay)
+
+    services_below_median, services_above_median = get_contract_types(
+        contracts, contracts_median
+    )
+
+    context = {
+        "fiscal_year": fiscal_year,
+        "contracts": contracts,
+        "contracts_count": contracts_count,
+        "contracts_total_amount": contracts_total,
+        "contracts_average": contracts_average,
+        "contracts_median": contracts_median,
+        "contractors_count": contractors_count,
+        "services_below_median": services_below_median,
+        "services_above_median": services_above_median,
+    }
+
+    return context
+
+
+def get_contract_types(contracts, contracts_median):
+    service_ids_below_median = []
+    service_ids_above_median = []
+
+    for contract in contracts:
+        if contract.amount_to_pay < contracts_median:
+            service_ids_below_median.append(contract.service_id)
+        else:
+            service_ids_above_median.append(contract.service_id)
+
+    services_below_median = Service.objects.filter(pk__in=set(service_ids_below_median))
+
+    services_above_median = Service.objects.filter(pk__in=set(service_ids_above_median))
+
+    return services_below_median, services_above_median
+
+
+def trends(request):
+    now = timezone.now()
+    fiscal_year_end = timezone.make_aware(datetime.datetime(now.year, 6, 30))
+
+    if now > fiscal_year_end:
+        current_fiscal_year = now.year + 1
+    else:
+        current_fiscal_year = now.year
+
+    fiscal_year = int(request.GET.get("fiscal_year", current_fiscal_year))
+
+    context = {"a": get_trend(fiscal_year), "b": get_trend(fiscal_year - 1)}
+
+    return render(request, "contracts/trends.html", context)
 
 
 @csrf_exempt
