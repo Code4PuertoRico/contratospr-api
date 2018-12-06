@@ -56,11 +56,14 @@ class DocumentAdmin(admin.ModelAdmin):
     has_text.boolean = True
 
     def detect_text(self, request, queryset):
-        from .tasks import detect_text
+        from .tasks import detect_text, generate_preview
 
         for document in queryset:
-            if not document.vision_data:
-                detect_text.send(document.pk, force=True)
+            if document.preview_data:
+                if not document.vision_data:
+                    detect_text.send(document.pk, force=True)
+            else:
+                generate_preview.send(document.pk)
 
     detect_text.short_description = (
         "Detect text using Vision API for selected documents"
