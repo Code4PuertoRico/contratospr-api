@@ -188,12 +188,19 @@ def update_contract(result, parent_id=None):
 
 
 @dramatiq.actor
-def scrape_contracts(limit=100):
+def scrape_contracts(limit=None, effective_start=None, effective_end=None):
     offset = 0
     total_records = 0
+    default_limit = 1000
 
     while offset <= total_records:
-        contracts = get_contracts(offset, limit)
+        real_limit = limit or default_limit
+        contracts = get_contracts(
+            offset,
+            real_limit,
+            effective_start=effective_start,
+            effective_end=effective_end,
+        )
 
         if not total_records:
             total_records = limit if limit else contracts["recordsFiltered"]
@@ -203,4 +210,4 @@ def scrape_contracts(limit=100):
                 [expand_contract.message(contract), update_contract.message()]
             ).run()
 
-        offset += limit
+        offset += real_limit

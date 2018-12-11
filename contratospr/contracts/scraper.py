@@ -51,7 +51,7 @@ def get_amendments(contract_number, entity_id):
     return response.json()
 
 
-def get_contracts(offset, limit):
+def get_contracts(offset, limit, effective_start=None, effective_end=None):
     response = requests.post(
         f"{BASE_CONTRACT_URL}/search",
         json={
@@ -143,8 +143,8 @@ def get_contracts(offset, limit):
             "ContractorName": None,
             "DateOfGrantFrom": None,
             "DateOfGrantTo": None,
-            "EffectiveDateFrom": None,
-            "EffectiveDateTo": None,
+            "EffectiveDateFrom": effective_start,
+            "EffectiveDateTo": effective_end,
             "AmountFrom": None,
             "AmountTo": None,
             "ServiceGroupId": None,
