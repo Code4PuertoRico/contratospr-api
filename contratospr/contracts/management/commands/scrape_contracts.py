@@ -8,12 +8,12 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("--limit", nargs="?", type=int, default=None)
-        parser.add_argument("--effective-start", nargs="?", type=str, default=None)
-        parser.add_argument("--effective-end", nargs="?", type=str, default=None)
+        parser.add_argument("--date-of-grant-start", nargs="?", type=str, default=None)
+        parser.add_argument("--date-of-grant-end", nargs="?", type=str, default=None)
 
     def handle(self, *args, **options):
         scrape_contracts.send(
             limit=options["limit"],
-            effective_start=options["effective_start"],
-            effective_end=options["effective_end"],
+            date_of_grant_start=options["date_of_grant_start"],
+            date_of_grant_end=options["date_of_grant_end"],
         )

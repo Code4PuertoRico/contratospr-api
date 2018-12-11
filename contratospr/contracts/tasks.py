@@ -188,7 +188,7 @@ def update_contract(result, parent_id=None):
 
 
 @dramatiq.actor
-def scrape_contracts(limit=None, effective_start=None, effective_end=None):
+def scrape_contracts(limit=None, date_of_grant_start=None, date_of_grant_end=None):
     offset = 0
     total_records = 0
     default_limit = 1000
@@ -198,8 +198,8 @@ def scrape_contracts(limit=None, effective_start=None, effective_end=None):
         contracts = get_contracts(
             offset,
             real_limit,
-            effective_start=effective_start,
-            effective_end=effective_end,
+            date_of_grant_start=date_of_grant_start,
+            date_of_grant_end=date_of_grant_end,
         )
 
         if not total_records:
