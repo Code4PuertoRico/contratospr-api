@@ -1,0 +1,31 @@
+<h2 id="totales-header" class="p-2 sm:mt-4">Totales</h2>
+<div class="flex items-center justify-center mt-8 sm:mt-4">
+    <div class="lg:flex w-full">
+        <div class="lg:w-1/2 mb-4 sm:mr-2 border rounded border-grey-light">
+            <h3 class="p-2 text-center border-b border-grey-light">Año Fiscal - {{ b.fiscal_year }}</h3>
+            {% for item in a.data.totals %}
+                <div class="flex sm:h-32 p-2 border-b border-grey-light hover:bg-grey-lightest">
+                <div class="flex-1 self-center">
+                    <div class="font-bold text-grey-darkest">
+                        {{ item.title }}
+                    </div>
+                    <div class="text-grey-darkest">{{ item.value }}</div>
+                </div>
+                </div>
+            {% endfor %}
+        </div>
+        <div class="lg:w-1/2 mb-4 sm:mr-2 border rounded border-grey-light">
+            <h3 class="p-2 text-center border-b border-grey-light">Año Fiscal - {{ b.fiscal_year }}</h3>
+            {% for item in b.data.totals %}
+            <div class="flex sm:h-32 p-2 border-b border-grey-light hover:bg-grey-lightest">
+                <div class="flex-1 self-center">
+                    <div class="font-bold text-grey-darkest">
+                    {{ item.title }}
+                    </div>
+                    <div class="text-grey-darkest">{{ item.value }}</div>
+                </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
