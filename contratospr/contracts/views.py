@@ -228,14 +228,41 @@ def get_trend(fiscal_year):
 
     context = {
         "fiscal_year": fiscal_year,
-        "contracts": contracts,
-        "contracts_count": contracts_count,
-        "contracts_total_amount": contracts_total,
-        "contracts_average": contracts_average,
-        "contracts_median": contracts_median,
-        "contractors_count": contractors_count,
-        "services_below_median": services_below_median,
-        "services_above_median": services_above_median,
+        "contratos": contracts,
+        "data": {
+            "totals": [
+                {
+                    "title": "Total de Contratos",
+                    "value": "{:,}".format(contracts_count),
+                },
+                {
+                    "title": "Monto Total de Contratos",
+                    "value": "${:,.2f}".format(contracts_total),
+                },
+                {
+                    "title": "Promedio Monto por Contrato",
+                    "value": "${:,.2f}".format(contracts_average),
+                },
+                {
+                    "title": "Media de Contratos",
+                    "value": "${:,.2f}".format(contracts_median),
+                },
+                {
+                    "title": "Total de Contratistas",
+                    "value": "{:,}".format(contractors_count),
+                },
+            ],
+            "services": [
+                {
+                    "title": "Servicios Por Debajo de la Media",
+                    "value": services_below_median,
+                },
+                {
+                    "title": "Servicios Sobre de la Media",
+                    "value": services_above_median,
+                },
+            ],
+        },
     }
 
     return context
@@ -259,6 +286,10 @@ def get_contract_types(contracts, contracts_median):
 
 
 def trends(request):
+    """
+    Get interesting trends from the harvested data.
+    """
+
     now = timezone.now()
     fiscal_year_end = timezone.make_aware(datetime.datetime(now.year, 6, 30))
 
