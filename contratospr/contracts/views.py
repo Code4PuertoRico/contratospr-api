@@ -207,20 +207,37 @@ def get_trend(fiscal_year):
     end_date = timezone.make_aware(datetime.datetime(fiscal_year + 1, 6, 30))
     contracts = Contract.objects.filter(
         effective_date_from__gte=start_date, effective_date_from__lte=end_date
-    ).only("amount_to_pay", "service_id")
+    ).only("amount_to_pay", "service_id", "slug", "number")
 
     contracts_count = len(contracts)
     contracts_total = 0
     contracts_average = 0
     contractors_count = 0
     contracts_median = 0
+    min_amount_to_pay_contract = 0
+    max_amount_to_pay_contract = 0
 
     if contracts_count:
-        amounts_to_pay = [contract.amount_to_pay for contract in contracts]
+        contracts_slug_amounts = [
+            {
+                "number": contract.number,
+                "slug": contract.slug,
+                "amount_to_pay": contract.amount_to_pay,
+            }
+            for contract in contracts
+        ]
+        contracts_slug_amounts.sort(key=lambda contract: contract["amount_to_pay"])
+        min_amount_to_pay_contract = contracts_slug_amounts[0]
+        max_amount_to_pay_contract = contracts_slug_amounts[-1]
+
+        amounts_to_pay = [
+            contract["amount_to_pay"] for contract in contracts_slug_amounts
+        ]
         contracts_total = sum(amounts_to_pay)
-        contracts_average = contracts_total / contracts_count
-        contractors_count = Contractor.objects.filter(contract__in=contracts).count()
         contracts_median = statistics.median(amounts_to_pay)
+        contracts_average = contracts_total / contracts_count
+
+        contractors_count = Contractor.objects.filter(contract__in=contracts).count()
 
     services_below_median, services_above_median = get_contract_types(
         contracts, contracts_median
@@ -230,28 +247,32 @@ def get_trend(fiscal_year):
         "fiscal_year": fiscal_year,
         "contratos": contracts,
         "data": {
-            "totals": [
-                {
-                    "title": "Total de Contratos",
-                    "value": "{:,}".format(contracts_count),
-                },
-                {
-                    "title": "Monto Total de Contratos",
-                    "value": "${:,.2f}".format(contracts_total),
-                },
-                {
-                    "title": "Promedio Monto por Contrato",
-                    "value": "${:,.2f}".format(contracts_average),
-                },
-                {
-                    "title": "Media de Contratos",
-                    "value": "${:,.2f}".format(contracts_median),
-                },
-                {
-                    "title": "Total de Contratistas",
-                    "value": "{:,}".format(contractors_count),
-                },
-            ],
+            "general_data": {
+                "contract_max_amount": max_amount_to_pay_contract,
+                "contract_min_amount": min_amount_to_pay_contract,
+                "totals": [
+                    {
+                        "title": "Total de Contratos",
+                        "value": "{:,}".format(contracts_count),
+                    },
+                    {
+                        "title": "Monto Total de Contratos",
+                        "value": "${:,.2f}".format(contracts_total),
+                    },
+                    {
+                        "title": "Promedio Monto por Contrato",
+                        "value": "${:,.2f}".format(contracts_average),
+                    },
+                    {
+                        "title": "Media de Contratos",
+                        "value": "${:,.2f}".format(contracts_median),
+                    },
+                    {
+                        "title": "Total de Contratistas",
+                        "value": "{:,}".format(contractors_count),
+                    },
+                ],
+            },
             "services": [
                 {
                     "title": "Servicios Por Debajo de la Media",
