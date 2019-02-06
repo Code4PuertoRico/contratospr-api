@@ -1,71 +1,61 @@
-import datetime
 import json
-from collections import defaultdict
 
 from django import forms
 from django.core.paginator import Paginator
 from django.db.models import Sum
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render
-from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 
 from .models import Contract, Contractor, Document, Entity, Service
 from .search import search_contracts
 from .tasks import detect_text
+from .utils import get_chart_data, get_current_fiscal_year, get_fiscal_year_range
 
 ITEMS_PER_PAGE = 20
 
 
 class HomeForm(forms.Form):
-    dias = forms.TypedChoiceField(
-        choices=[(30, "30 días"), (60, "60 días"), (90, "90 días"), (120, "120 días")],
+    # TODO Don't hardcode choices
+    fiscal_year = forms.TypedChoiceField(
+        choices=[(2016, "2016"), (2017, "2017"), (2018, "2018"), (2019, "2019")],
         required=True,
         coerce=int,
-        initial=90,
+        initial=get_current_fiscal_year() - 1,
     )
 
 
-def get_chart_data(contracts):
-    chart_data = []
-    chart_data_groups = defaultdict(list)
-
-    for contract in contracts:
-        chart_data_groups[contract.date_of_grant.date()].append(contract.amount_to_pay)
-
-    for date_of_grant, amounts in chart_data_groups.items():
-        chart_data.append(
-            {"x": date_of_grant, "y": sum(amounts), "contracts": len(amounts)}
-        )
-
-    return chart_data
-
-
 def index(request):
-    now = timezone.now()
     form = HomeForm(request.POST) if request.method == "POST" else HomeForm()
 
     if form.is_valid():
-        last_x_days = now - datetime.timedelta(days=form.cleaned_data["dias"])
+        fiscal_year = form.cleaned_data.get("fiscal_year", get_current_fiscal_year())
     else:
-        last_x_days = now - datetime.timedelta(days=90)
+        fiscal_year = get_current_fiscal_year()
+
+    start_date, end_date = get_fiscal_year_range(fiscal_year)
 
     contracts = (
         Contract.objects.prefetch_related("contractors")
         .select_related("entity")
-        .filter(parent=None, date_of_grant__lte=now, date_of_grant__gte=last_x_days)
+        .filter(
+            parent=None,
+            effective_date_from__gte=start_date,
+            effective_date_from__lte=end_date,
+        )
     )
+
     contracts_total = contracts.aggregate(total=Sum("amount_to_pay"))["total"]
 
-    recent_contracts = contracts.order_by("-date_of_grant")[:5]
+    recent_contracts = contracts.order_by("-effective_date_from")[:5]
 
     contractors = (
         Contractor.objects.prefetch_related("contract_set")
         .annotate(total=Sum("contract__amount_to_pay"))
         .filter(
             contract__parent=None,
-            contract__date_of_grant__lte=now,
-            contract__date_of_grant__gte=last_x_days,
+            contract__effective_date_from__gte=start_date,
+            contract__effective_date_from__lte=end_date,
         )
         .order_by("-total")
     )[:5]
@@ -75,8 +65,8 @@ def index(request):
         .annotate(total=Sum("contract__amount_to_pay"))
         .filter(
             contract__parent=None,
-            contract__date_of_grant__lte=now,
-            contract__date_of_grant__gte=last_x_days,
+            contract__effective_date_from__gte=start_date,
+            contract__effective_date_from__lte=end_date,
         )
         .order_by("-total")
     )[:5]

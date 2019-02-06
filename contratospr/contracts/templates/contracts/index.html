@@ -6,13 +6,13 @@
 {% block content %}
 <div class="my-4 mt-8 sm:mt-16">
   <div class="text-xl text-center">
-    En los últimos
+    Durante el año fiscal
     <form action="" method="POST" class="inline-block relative">
       {% csrf_token %}
       <div class="inline-block relative">
-        <select name="dias" class="block text-lg appearance-none w-full bg-white border-b border-grey-light hover:border-grey px-2 pr-6 rounded-none focus:outline-none focus:shadow-outline" onchange="this.form.submit()">
-          {% for value, text in form.fields.dias.choices %}
-            <option value="{{ value }}" {% if form.dias.value|stringformat:'s' == value|stringformat:'s' %}selected{% endif %}>{{ text }}</option>
+        <select name="fiscal_year" class="block text-lg appearance-none w-full bg-white border-b border-grey-light hover:border-grey px-2 pr-6 rounded-none focus:outline-none focus:shadow-outline" onchange="this.form.submit()">
+          {% for value, text in form.fields.fiscal_year.choices %}
+            <option value="{{ value }}" {% if form.fiscal_year.value|stringformat:'s' == value|stringformat:'s' %}selected{% endif %}>{{ text }}</option>
           {% endfor %}
         </select>
         <div class="pointer-events-none absolute pin-y pin-r flex items-center px-2 text-grey-darker">
@@ -20,7 +20,7 @@
         </div>
       </div>
     </form>
-    se han otorgado <span class="font-bold text-grey-darkest">{{ contracts_count|intcomma }}</span> contratos por un total de <span class="font-bold text-grey-darkest">${{ contracts_total|millify }}</span>.
+    se otorgaron <span class="font-bold text-grey-darkest">{{ contracts_count|intcomma }}</span> contratos por un total de <span class="font-bold text-grey-darkest">${{ contracts_total|millify }}</span>.
   </div>
 </div>
 
