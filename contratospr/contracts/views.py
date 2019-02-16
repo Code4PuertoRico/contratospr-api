@@ -167,8 +167,11 @@ def contractor(request, contractor_slug):
 def search(request):
     query = request.GET.get("q", "")
     service_id = request.GET.get("service")
+    service_group_id = request.GET.get("service_group")
     page = request.GET.get("page", 1)
-    contracts = search_contracts(query=query, service_id=service_id)
+    contracts = search_contracts(
+        query=query, service_id=service_id, service_group_id=service_group_id
+    )
     paginator = Paginator(contracts, ITEMS_PER_PAGE)
     context = {"contracts": paginator.get_page(page), "query": query}
     return render(request, "contracts/search.html", context)
@@ -205,9 +208,11 @@ def contractors(request):
 def get_trend(fiscal_year):
     start_date = timezone.make_aware(datetime.datetime(fiscal_year, 7, 1))
     end_date = timezone.make_aware(datetime.datetime(fiscal_year + 1, 6, 30))
-    contracts = Contract.objects.filter(
-        effective_date_from__gte=start_date, effective_date_from__lte=end_date
-    ).only("amount_to_pay", "service_id", "slug", "number")
+    contracts = (
+        Contract.objects.select_related("service__group")
+        .filter(effective_date_from__gte=start_date, effective_date_from__lte=end_date)
+        .only("amount_to_pay", "service", "slug", "number")
+    )
 
     contracts_count = len(contracts)
     contracts_total = 0
@@ -218,29 +223,31 @@ def get_trend(fiscal_year):
     max_amount_to_pay_contract = 0
 
     if contracts_count:
-        contracts_slug_amounts = [
-            {
-                "number": contract.number,
-                "slug": contract.slug,
-                "amount_to_pay": contract.amount_to_pay,
-            }
-            for contract in contracts
-        ]
+        contracts_slug_amounts = []
+        amounts_to_pay = []
+
+        for contract in contracts:
+            contracts_total += contract.amount_to_pay
+            contracts_slug_amounts.append(
+                {
+                    "number": contract.number,
+                    "slug": contract.slug,
+                    "amount_to_pay": contract.amount_to_pay,
+                }
+            )
+            amounts_to_pay.append(contract.amount_to_pay)
+
         contracts_slug_amounts.sort(key=lambda contract: contract["amount_to_pay"])
         min_amount_to_pay_contract = contracts_slug_amounts[0]
         max_amount_to_pay_contract = contracts_slug_amounts[-1]
 
-        amounts_to_pay = [
-            contract["amount_to_pay"] for contract in contracts_slug_amounts
-        ]
-        contracts_total = sum(amounts_to_pay)
         contracts_median = statistics.median(amounts_to_pay)
         contracts_average = contracts_total / contracts_count
 
-        contractors_count = Contractor.objects.filter(contract__in=contracts).count()
+        contractors_count = contracts.select_related("contractor").count()
 
-    services_below_median, services_above_median = get_contract_types(
-        contracts, contracts_median
+    services_totals, services_group_totals = get_contract_types_totals(
+        contracts, fiscal_year
     )
 
     context = {
@@ -273,37 +280,53 @@ def get_trend(fiscal_year):
                     },
                 ],
             },
-            "services": [
-                {
-                    "title": "Servicios Por Debajo de la Media",
-                    "value": services_below_median,
-                },
-                {
-                    "title": "Servicios Sobre de la Media",
-                    "value": services_above_median,
-                },
-            ],
+            "services_totals": {
+                "title": "Totales por Tipos de Servicios",
+                "total": len(services_totals),
+                "value": services_totals,
+            },
+            "services_groups_totals": {
+                "title": "Totales por Categoria de Servicios",
+                "total": len(services_group_totals),
+                "value": services_group_totals,
+            },
         },
     }
 
     return context
 
 
-def get_contract_types(contracts, contracts_median):
-    service_ids_below_median = []
-    service_ids_above_median = []
+def get_contract_types_totals(contracts, fiscal_year):
+    service_totals = {}
+    service_groups_totals = {}
 
     for contract in contracts:
-        if contract.amount_to_pay < contracts_median:
-            service_ids_below_median.append(contract.service_id)
+        if contract.service.id in service_totals.keys():
+            service_totals[contract.service.id]["total"] += contract.amount_to_pay
         else:
-            service_ids_above_median.append(contract.service_id)
+            service_totals[contract.service.id] = {
+                "name": contract.service.name,
+                "total": contract.amount_to_pay,
+            }
+        if contract.service.group.id in service_groups_totals.keys():
+            service_groups_totals[contract.service.group.id][
+                "total"
+            ] += contract.amount_to_pay
+        else:
+            service_groups_totals[contract.service.group.id] = {
+                "name": contract.service.group.name,
+                "total": contract.amount_to_pay,
+            }
+    service_groups_totals = [
+        {"id": key, "name": value["name"], "total": value["total"]}
+        for key, value in service_groups_totals.items()
+    ]
+    service_totals = [
+        {"id": key, "name": value["name"], "total": value["total"]}
+        for key, value in service_totals.items()
+    ]
 
-    services_below_median = Service.objects.filter(pk__in=set(service_ids_below_median))
-
-    services_above_median = Service.objects.filter(pk__in=set(service_ids_above_median))
-
-    return services_below_median, services_above_median
+    return service_totals, service_groups_totals
 
 
 def trends(request):
