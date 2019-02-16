@@ -1,2 +1,2 @@
 web: ./bin/web
-worker: ./bin/worker
+worker: ./bin/worker --verbose --threads 1

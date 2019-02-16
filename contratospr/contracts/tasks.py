@@ -82,12 +82,18 @@ def expand_contract(contract):
 
 
 @dramatiq.actor
-def enhance_document(document_id):
+def download_document(document_id):
     with DISTRIBUTED_MUTEX.acquire():
         document = Document.objects.get(pk=document_id)
 
         # Download document and upload to S3
         document.download()
+
+
+@dramatiq.actor
+def generate_preview(document_id):
+    with DISTRIBUTED_MUTEX.acquire():
+        document = Document.objects.get(pk=document_id)
 
         # Try to generate preview with FilePreviews
         document.generate_preview()
@@ -156,7 +162,7 @@ def update_contract(result, parent_id=None):
         contract_data["document"] = document
 
         if created:
-            enhance_document.send(document.pk)
+            download_document.send(document.pk)
 
     contract, _ = Contract.objects.update_or_create(
         source_id=result["contract_id"], defaults=contract_data
@@ -182,12 +188,19 @@ def update_contract(result, parent_id=None):
 
 
 @dramatiq.actor
-def scrape_contracts(limit=100):
+def scrape_contracts(limit=None, date_of_grant_start=None, date_of_grant_end=None):
     offset = 0
     total_records = 0
+    default_limit = 1000
 
     while offset <= total_records:
-        contracts = get_contracts(offset, limit)
+        real_limit = limit or default_limit
+        contracts = get_contracts(
+            offset,
+            real_limit,
+            date_of_grant_start=date_of_grant_start,
+            date_of_grant_end=date_of_grant_end,
+        )
 
         if not total_records:
             total_records = limit if limit else contracts["recordsFiltered"]
@@ -197,4 +210,4 @@ def scrape_contracts(limit=100):
                 [expand_contract.message(contract), update_contract.message()]
             ).run()
 
-        offset += limit
+        offset += real_limit
