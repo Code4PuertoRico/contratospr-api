@@ -544,7 +544,10 @@ table {
   * .btn { ... }
   * .form-input { ... }
   */
-
+.trends-services-max-h {
+  max-height: 10rem;
+  overflow-y: auto;
+}
 /**
   * This injects all of Tailwind's utility classes, generated based on your
   * config file.
