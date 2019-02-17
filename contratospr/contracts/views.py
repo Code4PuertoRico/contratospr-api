@@ -1,13 +1,13 @@
+import datetime
 import json
-
 import statistics
-from collections import defaultdict
 
 from django import forms
 from django.core.paginator import Paginator
 from django.db.models import Sum
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render
+from django.util import timezone
 from django.views.decorators.csrf import csrf_exempt
 
 from .models import Contract, Contractor, Document, Entity, Service
