@@ -15,10 +15,10 @@ jobs:
             pip install --user --no-cache-dir -r requirements.txt
       - run:
           name: Run black
-          command: black --check .
+          command: ~/.local/bin/black --check .
       - run:
           name: Run isort
-          command: isort --recursive --check-only --diff
+          command: ~/.local/bin/isort --recursive --check-only --diff
       - run:
           name: Run flake8
-          command: flake8
+          command: ~/.local/bin/flake8
