@@ -1,4 +1,3 @@
-import datetime
 import json
 import statistics
 
@@ -7,7 +6,6 @@ from django.core.paginator import Paginator
 from django.db.models import Sum
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render
-from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 
 from .models import Contract, Contractor, Document, Entity, Service
@@ -198,8 +196,8 @@ def contractors(request):
 
 
 def get_trend(fiscal_year):
-    start_date = timezone.make_aware(datetime.datetime(fiscal_year, 7, 1))
-    end_date = timezone.make_aware(datetime.datetime(fiscal_year + 1, 6, 30))
+    start_date, end_date = get_fiscal_year_range(fiscal_year)
+
     contracts = (
         Contract.objects.select_related("service", "service__group")
         .filter(effective_date_from__gte=start_date, effective_date_from__lte=end_date)

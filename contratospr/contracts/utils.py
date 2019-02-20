@@ -17,8 +17,8 @@ def get_current_fiscal_year():
 
 
 def get_fiscal_year_range(fiscal_year):
-    start_date = timezone.make_aware(datetime.datetime(fiscal_year, 7, 1))
-    end_date = timezone.make_aware(datetime.datetime(fiscal_year + 1, 6, 30))
+    start_date = timezone.make_aware(datetime.datetime(fiscal_year - 1, 7, 1))
+    end_date = timezone.make_aware(datetime.datetime(fiscal_year, 6, 30))
 
     return start_date, end_date
 
