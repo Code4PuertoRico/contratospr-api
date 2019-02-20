@@ -40,6 +40,7 @@ class Common(Configuration):
         "django_filters",
         "crispy_forms",
         "rest_framework",
+        "corsheaders",
         "contratospr.users",
         "contratospr.contracts",
         "contratospr.api",
@@ -48,6 +49,7 @@ class Common(Configuration):
 
     MIDDLEWARE = [
         "django.middleware.security.SecurityMiddleware",
+        "corsheaders.middleware.CorsMiddleware",
         "whitenoise.middleware.WhiteNoiseMiddleware",
         "django.contrib.sessions.middleware.SessionMiddleware",
         "django.middleware.common.CommonMiddleware",
@@ -135,8 +137,7 @@ class Common(Configuration):
     CONTRACTS_DOCUMENT_STORAGE = "django.core.files.storage.FileSystemStorage"
 
     REST_FRAMEWORK = {
-        "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
-        "PAGE_SIZE": 100,
+        "DEFAULT_PAGINATION_CLASS": "contratospr.api.pagination.PageNumberPagination"
     }
 
 
@@ -150,6 +151,8 @@ class Development(Common):
     ALLOWED_HOSTS = ["*"]
 
     INTERNAL_IPS = ["127.0.0.1"]
+
+    CORS_ORIGIN_ALLOW_ALL = True
 
 
 class Staging(Common):
@@ -180,8 +183,3 @@ class Production(Staging):
     AWS_S3_BUCKET_NAME = values.Value(environ_prefix=None)
 
     CONTRACTS_DOCUMENT_STORAGE = "django_s3_storage.storage.S3Storage"
-
-
-class Kubernetes(Production):
-    ALLOWED_HOSTS = ["*"]
-    SECURE_REDIRECT_EXEMPT = [r"^health/liveness/$", r"^health/readiness/$"]

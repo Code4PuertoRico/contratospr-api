@@ -71,3 +71,54 @@ class ContractFilter(django_filters.FilterSet):
     class Meta:
         model = Contract
         fields = ["number", "service", "service_group", "entity", "contractor"]
+
+
+class ContractorFilter(django_filters.FilterSet):
+    entity = django_filters.ModelChoiceFilter(
+        help_text="Filter by Entity ID",
+        queryset=Entity.objects.all(),
+        method="filter_entity",
+    )
+
+    class Meta:
+        model = Contractor
+        fields = ["entity"]
+
+    def filter_entity(self, queryset, name, value):
+        contracts = value.contract_set.all()
+        return queryset.filter(contract__in=contracts).distinct()
+
+
+class EntityFilter(django_filters.FilterSet):
+    contractor = django_filters.ModelChoiceFilter(
+        help_text="Filter by Contractgor ID",
+        queryset=Contractor.objects.all(),
+        method="filter_contractor",
+    )
+
+    class Meta:
+        model = Entity
+        fields = ["contractor"]
+
+    def filter_contractor(self, queryset, name, value):
+        contracts = value.contract_set.filter(parent=None)
+        return queryset.filter(contract__in=contracts).distinct()
+
+
+class ServiceFilter(django_filters.FilterSet):
+    contractor = django_filters.ModelChoiceFilter(
+        field_name="contractor",
+        help_text="Filter by Contractor ID",
+        queryset=Contractor.objects.all(),
+        method="filter_contractor",
+    )
+
+    class Meta:
+        model = Service
+        fields = ["group", "contractor"]
+
+    def filter_contractor(self, queryset, name, value):
+        contracts = value.contract_set.filter(parent=None)
+        return queryset.filter(
+            pk__in=[contract.service_id for contract in contracts]
+        ).distinct()

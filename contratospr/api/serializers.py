@@ -16,9 +16,22 @@ class RecursiveSerializer(serializers.Serializer):
 
 
 class ContractorSerializer(serializers.ModelSerializer):
+    contracts_total = serializers.DecimalField(
+        max_digits=20, decimal_places=2, allow_null=True
+    )
+    contracts_count = serializers.IntegerField(allow_null=True)
+
     class Meta:
         model = Contractor
-        fields = ["id", "name", "source_id", "entity_id"]
+        fields = [
+            "id",
+            "slug",
+            "name",
+            "source_id",
+            "entity_id",
+            "contracts_count",
+            "contracts_total",
+        ]
 
 
 class DocumentSerializer(serializers.ModelSerializer):
@@ -50,9 +63,23 @@ class ServiceSerializer(serializers.ModelSerializer):
 
 
 class EntitySerializer(serializers.ModelSerializer):
+    contracts_total = serializers.DecimalField(
+        max_digits=20, decimal_places=2, allow_null=True
+    )
+    contracts_count = serializers.IntegerField(allow_null=True)
+
     class Meta:
         model = Entity
-        fields = ["id", "name", "source_id", "created_at", "modified_at"]
+        fields = [
+            "id",
+            "slug",
+            "name",
+            "source_id",
+            "contracts_count",
+            "contracts_total",
+            "created_at",
+            "modified_at",
+        ]
 
 
 class ContractSerializer(serializers.ModelSerializer):
@@ -68,6 +95,7 @@ class ContractSerializer(serializers.ModelSerializer):
         model = Contract
         fields = [
             "id",
+            "slug",
             "source_id",
             "number",
             "amendment",

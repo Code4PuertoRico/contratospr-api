@@ -9,6 +9,7 @@ from .views import (
     EntityViewSet,
     ServiceGroupViewSet,
     ServiceViewSet,
+    homepage_api_view,
 )
 
 router = DefaultRouter()
@@ -25,5 +26,6 @@ router.register(r"services", ServiceViewSet)
 
 urlpatterns = [
     path("v1/", include((router.urls, "api"), namespace="v1")),
+    path("v1/pages/home", homepage_api_view),
     path("v1/docs/", include_docs_urls(title="Contratos de Puerto Rico")),
 ]

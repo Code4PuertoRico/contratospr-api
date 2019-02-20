@@ -57,14 +57,6 @@ class Entity(BaseModel):
     def __str__(self):
         return self.name
 
-    @property
-    def contracts_count(self):
-        return self.contract_set.filter(parent=None).count()
-
-    @property
-    def contracts_total(self):
-        return sum([contract.amount_to_pay for contract in self.contract_set.all()])
-
 
 class ServiceGroup(BaseModel):
     name = models.CharField(max_length=255, unique=True)
@@ -208,14 +200,6 @@ class Contractor(BaseModel):
 
     def __str__(self):
         return self.name
-
-    @property
-    def contracts_count(self):
-        return self.contract_set.filter(parent=None).count()
-
-    @property
-    def contracts_total(self):
-        return sum([contract.amount_to_pay for contract in self.contract_set.all()])
 
 
 class Contract(BaseModel):
