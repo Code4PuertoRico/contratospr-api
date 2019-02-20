@@ -201,7 +201,7 @@ def get_trend(fiscal_year):
     start_date = timezone.make_aware(datetime.datetime(fiscal_year, 7, 1))
     end_date = timezone.make_aware(datetime.datetime(fiscal_year + 1, 6, 30))
     contracts = (
-        Contract.objects.select_related("service__group")
+        Contract.objects.select_related("service", "service__group")
         .filter(effective_date_from__gte=start_date, effective_date_from__lte=end_date)
         .only("amount_to_pay", "service", "slug", "number")
     )
