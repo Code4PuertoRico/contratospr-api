@@ -26,7 +26,7 @@ def index_contract(obj):
     return contract.save(update_fields=["search_vector"])
 
 
-def search_contracts(query, service_id):
+def search_contracts(query, service_id, service_group_id):
     filter_kwargs = {}
 
     if query:
@@ -34,6 +34,9 @@ def search_contracts(query, service_id):
 
     if service_id:
         filter_kwargs["service_id"] = service_id
+
+    if service_group_id:
+        filter_kwargs["service__group_id"] = service_group_id
 
     if not filter_kwargs:
         return []

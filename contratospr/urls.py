@@ -12,6 +12,7 @@ from .contracts.views import (
     filepreviews_webhook,
     index,
     search,
+    trends,
 )
 from .utils.views import liveness, readiness
 
@@ -29,4 +30,5 @@ urlpatterns = [
     path("contratos/<slug:contract_slug>/", contract, name="contract"),
     path("contratistas/", contractors, name="contractors"),
     path("contratistas/<slug:contractor_slug>/", contractor, name="contractor"),
+    path("trends/", trends, name="trends"),
 ]
