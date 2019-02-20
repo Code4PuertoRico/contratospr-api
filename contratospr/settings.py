@@ -183,3 +183,5 @@ class Production(Staging):
     AWS_S3_BUCKET_NAME = values.Value(environ_prefix=None)
 
     CONTRACTS_DOCUMENT_STORAGE = "django_s3_storage.storage.S3Storage"
+
+    CORS_ORIGIN_WHITELIST = ["contratospr.com"]
