@@ -7,7 +7,7 @@ from django.core.paginator import Paginator
 from django.db.models import Sum
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render
-from django.util import timezone
+from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 
 from .models import Contract, Contractor, Document, Entity, Service
@@ -326,13 +326,7 @@ def trends(request):
     Get interesting trends from the harvested data.
     """
 
-    now = timezone.now()
-    fiscal_year_end = timezone.make_aware(datetime.datetime(now.year, 6, 30))
-
-    if now > fiscal_year_end:
-        current_fiscal_year = now.year + 1
-    else:
-        current_fiscal_year = now.year
+    current_fiscal_year = get_current_fiscal_year()
 
     fiscal_year = int(request.GET.get("fiscal_year", current_fiscal_year))
 
