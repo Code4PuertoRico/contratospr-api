@@ -137,6 +137,7 @@ class ContractSerializer(serializers.ModelSerializer):
             "cancellation_date",
             "amount_to_pay",
             "has_amendments",
+            "amendments",
             "exempt_id",
             "entity",
             "service",
@@ -150,4 +151,5 @@ class ContractSerializer(serializers.ModelSerializer):
     def get_fields(self):
         fields = super(ContractSerializer, self).get_fields()
         fields["parent"] = ContractSerializer()
+        fields["amendments"] = SimpleContractSerializer(many=True)
         return fields
