@@ -1,43 +1,126 @@
-from django.db.models import Count, Sum
-from rest_framework import filters, mixins, viewsets
+from django.db.models import Avg, Count, Sum
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from ..contracts.models import (
-    Contract,
-    Contractor,
-    Document,
-    Entity,
-    Service,
-    ServiceGroup,
-)
+from ..contracts.models import Contract, Contractor, Entity, Service, ServiceGroup
 from ..contracts.utils import get_current_fiscal_year, get_fiscal_year_range
-from ..contracts.views import HomeForm
-from .filters import (
-    ContractFilter,
-    ContractorFilter,
-    EntityFilter,
-    SearchQueryFilter,
-    ServiceFilter,
-    SimpleDjangoFilterBackend,
-)
-from .schemas import ContractSchema
+from ..utils.aggregates import Median
 from .serializers import (
     ContractorSerializer,
     ContractSerializer,
-    DocumentSerializer,
     EntitySerializer,
+    HomeSerializer,
     ServiceGroupSerializer,
     ServiceSerializer,
+    SimpleContractSerializer,
 )
+
+
+def get_general_trend(fiscal_year):
+    start_date, end_date = get_fiscal_year_range(fiscal_year)
+
+    contracts = (
+        Contract.objects.select_related("service", "service__group")
+        .filter(effective_date_from__gte=start_date, effective_date_from__lte=end_date)
+        .only("amount_to_pay", "service", "slug", "number")
+        .order_by("amount_to_pay")
+    )
+
+    contracts_count = contracts.count()
+    contracts_total = 0
+    contracts_average = 0
+    contractors_count = 0
+    contracts_median = 0
+    min_amount_to_pay_contract = 0
+    max_amount_to_pay_contract = 0
+
+    if contracts_count:
+        min_amount_to_pay_contract = SimpleContractSerializer(contracts.first()).data
+        max_amount_to_pay_contract = SimpleContractSerializer(contracts.last()).data
+
+        stats = contracts.aggregate(
+            total=Sum("amount_to_pay"),
+            avg=Avg("amount_to_pay"),
+            median=Median("amount_to_pay"),
+        )
+
+        contracts_total = stats["total"]
+        contracts_median = stats["median"]
+        contracts_average = stats["avg"]
+
+        contractors_count = Contractor.objects.filter(contract__in=contracts).count()
+
+    return {
+        "fiscal_year": fiscal_year,
+        "contract_max_amount": max_amount_to_pay_contract,
+        "contract_min_amount": min_amount_to_pay_contract,
+        "totals": [
+            {"title": "Total de Contratos", "value": "{:,}".format(contracts_count)},
+            {
+                "title": "Monto Total de Contratos",
+                "value": "${:,.2f}".format(contracts_total),
+            },
+            {
+                "title": "Promedio Monto por Contrato",
+                "value": "${:,.2f}".format(contracts_average),
+            },
+            {
+                "title": "Media de Contratos",
+                "value": "${:,.2f}".format(contracts_median),
+            },
+            {
+                "title": "Total de Contratistas",
+                "value": "{:,}".format(contractors_count),
+            },
+        ],
+    }
+
+
+def get_service_trend(fiscal_year):
+    start_date, end_date = get_fiscal_year_range(fiscal_year)
+
+    contracts = (
+        Contract.objects.select_related("service", "service__group")
+        .filter(effective_date_from__gte=start_date, effective_date_from__lte=end_date)
+        .only("amount_to_pay", "service", "slug", "number")
+        .order_by("amount_to_pay")
+    )
+
+    services = (
+        Service.objects.filter(contract__in=contracts)
+        .select_related("group")
+        .annotate(contracts_total=Sum("contract__amount_to_pay"))
+    )
+
+    service_groups = ServiceGroup.objects.filter(
+        service__contract__in=contracts
+    ).annotate(contracts_total=Sum("service__contract__amount_to_pay"))
+
+    service_totals = ServiceSerializer(services, many=True).data
+
+    service_group_totals = ServiceGroupSerializer(service_groups, many=True).data
+
+    return {
+        "fiscal_year": fiscal_year,
+        "services": {
+            "title": "Totales por Tipos de Servicios",
+            "value": service_totals,
+        },
+        "service_groups": {
+            "title": "Totales por Categoria de Servicios",
+            "value": service_group_totals,
+        },
+    }
 
 
 @api_view(["GET"])
 def homepage_api_view(request):
-    form = HomeForm(request.GET) if request.method == "GET" else HomeForm()
+    serializer = HomeSerializer(data=request.GET)
 
-    if form.is_valid():
-        fiscal_year = form.cleaned_data.get("fiscal_year", get_current_fiscal_year())
+    if serializer.is_valid():
+        fiscal_year = serializer.validated_data.get(
+            "fiscal_year", get_current_fiscal_year()
+        )
     else:
         fiscal_year = get_current_fiscal_year() - 1
 
@@ -110,7 +193,7 @@ def homepage_api_view(request):
     context = {
         "fiscal_year": {
             "current": fiscal_year,
-            "choices": [choice[0] for choice in form.fields["fiscal_year"].choices],
+            "choices": [choice for choice in serializer.fields["fiscal_year"].choices],
         },
         "recent_contracts": recent_contracts_data,
         "contractors": contractors_data,
@@ -122,102 +205,23 @@ def homepage_api_view(request):
     return Response(context)
 
 
-class ContractViewSet(viewsets.ReadOnlyModelViewSet):
-    schema = ContractSchema()
-    queryset = (
-        Contract.objects.select_related(
-            "document",
-            "entity",
-            "service",
-            "service__group",
-            "parent__document",
-            "parent__entity",
-            "parent__service",
-            "parent__service__group",
-        )
-        .prefetch_related("contractors", "parent__contractors")
-        .all()
+@api_view(["GET"])
+def trends_general_api_view(request):
+    current_fiscal_year = get_current_fiscal_year()
+
+    fiscal_year = int(request.GET.get("fiscal_year", current_fiscal_year))
+
+    return Response(
+        {"a": get_general_trend(fiscal_year), "b": get_general_trend(fiscal_year - 1)}
     )
-    serializer_class = ContractSerializer
-    filter_backends = [
-        SearchQueryFilter,
-        SimpleDjangoFilterBackend,
-        filters.OrderingFilter,
-    ]
-    filterset_class = ContractFilter
-    ordering_fields = [
-        "amount_to_pay",
-        "date_of_grant",
-        "effective_date_from",
-        "effective_date_to",
-        "created_at",
-        "modified_at",
-    ]
-    ordering = ["-date_of_grant"]
-    lookup_field = "slug"
 
 
-class ContractorViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Contractor.objects.all().annotate(
-        contracts_total=Sum("contract__amount_to_pay"),
-        contracts_count=Count("contract"),
+@api_view(["GET"])
+def trends_services_api_view(request):
+    current_fiscal_year = get_current_fiscal_year()
+
+    fiscal_year = int(request.GET.get("fiscal_year", current_fiscal_year))
+
+    return Response(
+        {"a": get_service_trend(fiscal_year), "b": get_service_trend(fiscal_year - 1)}
     )
-    serializer_class = ContractorSerializer
-    filterset_class = ContractorFilter
-    filter_backends = [
-        filters.OrderingFilter,
-        filters.SearchFilter,
-        SimpleDjangoFilterBackend,
-    ]
-    search_fields = ["name"]
-    ordering_fields = ["name"]
-    ordering = ["name"]
-    lookup_field = "slug"
-
-
-class DocumentViewSet(mixins.RetrieveModelMixin, viewsets.GenericViewSet):
-    queryset = Document.objects.all()
-    serializer_class = DocumentSerializer
-
-
-class EntityViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Entity.objects.all().annotate(
-        contracts_total=Sum("contract__amount_to_pay"),
-        contracts_count=Count("contract"),
-    )
-    serializer_class = EntitySerializer
-    filterset_class = EntityFilter
-    filter_backends = [
-        filters.OrderingFilter,
-        filters.SearchFilter,
-        SimpleDjangoFilterBackend,
-    ]
-    search_fields = ["name"]
-    ordering_fields = ["name"]
-    ordering = ["name"]
-    lookup_field = "slug"
-
-
-class ServiceGroupViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = ServiceGroup.objects.all()
-    serializer_class = ServiceGroupSerializer
-    filter_backends = [filters.OrderingFilter, filters.SearchFilter]
-    search_fields = ["name"]
-    ordering_fields = ["name"]
-    ordering = ["name"]
-    lookup_field = "slug"
-
-
-class ServiceViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Service.objects.select_related("group").all()
-    serializer_class = ServiceSerializer
-    filterset_class = ServiceFilter
-    filter_backends = [
-        filters.OrderingFilter,
-        filters.SearchFilter,
-        SimpleDjangoFilterBackend,
-    ]
-    search_fields = ["name"]
-    ordering_fields = ["name"]
-    ordering = ["name"]
-    lookup_field = "slug"

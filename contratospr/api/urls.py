@@ -2,14 +2,14 @@ from django.urls import include, path
 from rest_framework.documentation import include_docs_urls
 from rest_framework.routers import DefaultRouter
 
-from .views import (
+from .views import homepage_api_view, trends_general_api_view, trends_services_api_view
+from .viewsets import (
     ContractorViewSet,
     ContractViewSet,
     DocumentViewSet,
     EntityViewSet,
     ServiceGroupViewSet,
     ServiceViewSet,
-    homepage_api_view,
 )
 
 router = DefaultRouter()
@@ -26,6 +26,8 @@ router.register(r"services", ServiceViewSet)
 
 urlpatterns = [
     path("v1/", include((router.urls, "api"), namespace="v1")),
-    path("v1/pages/home", homepage_api_view),
+    path("v1/pages/home/", homepage_api_view),
+    path("v1/pages/trends/general/", trends_general_api_view),
+    path("v1/pages/trends/services/", trends_services_api_view),
     path("v1/docs/", include_docs_urls(title="Contratos de Puerto Rico")),
 ]

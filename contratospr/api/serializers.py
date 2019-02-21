@@ -8,11 +8,20 @@ from ..contracts.models import (
     Service,
     ServiceGroup,
 )
+from ..contracts.utils import get_current_fiscal_year
 
 
 class RecursiveSerializer(serializers.Serializer):
     def to_native(self, value):
         return self.parent.to_native(value)
+
+
+class HomeSerializer(serializers.Serializer):
+    fiscal_year = serializers.ChoiceField(
+        choices=[(2016, "2016"), (2017, "2017"), (2018, "2018"), (2019, "2019")],
+        allow_null=False,
+        initial=get_current_fiscal_year() - 1,
+    )
 
 
 class ContractorSerializer(serializers.ModelSerializer):
@@ -49,17 +58,25 @@ class DocumentSerializer(serializers.ModelSerializer):
 
 
 class ServiceGroupSerializer(serializers.ModelSerializer):
+    contracts_total = serializers.DecimalField(
+        max_digits=20, decimal_places=2, allow_null=True
+    )
+
     class Meta:
         model = ServiceGroup
-        fields = ["id", "name", "created_at", "modified_at"]
+        fields = ["id", "name", "contracts_total", "created_at", "modified_at"]
 
 
 class ServiceSerializer(serializers.ModelSerializer):
     group = ServiceGroupSerializer()
 
+    contracts_total = serializers.DecimalField(
+        max_digits=20, decimal_places=2, allow_null=True
+    )
+
     class Meta:
         model = Service
-        fields = ["id", "name", "group", "created_at", "modified_at"]
+        fields = ["id", "name", "group", "contracts_total", "created_at", "modified_at"]
 
 
 class EntitySerializer(serializers.ModelSerializer):
@@ -77,6 +94,21 @@ class EntitySerializer(serializers.ModelSerializer):
             "source_id",
             "contracts_count",
             "contracts_total",
+            "created_at",
+            "modified_at",
+        ]
+
+
+class SimpleContractSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Contract
+        fields = [
+            "id",
+            "slug",
+            "source_id",
+            "number",
+            "amendment",
+            "amount_to_pay",
             "created_at",
             "modified_at",
         ]
