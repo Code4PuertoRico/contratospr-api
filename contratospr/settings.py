@@ -40,6 +40,7 @@ class Common(Configuration):
         "django_filters",
         "crispy_forms",
         "rest_framework",
+        "corsheaders",
         "contratospr.users",
         "contratospr.contracts",
         "contratospr.api",
@@ -48,6 +49,7 @@ class Common(Configuration):
 
     MIDDLEWARE = [
         "django.middleware.security.SecurityMiddleware",
+        "corsheaders.middleware.CorsMiddleware",
         "whitenoise.middleware.WhiteNoiseMiddleware",
         "django.contrib.sessions.middleware.SessionMiddleware",
         "django.middleware.common.CommonMiddleware",
@@ -62,7 +64,7 @@ class Common(Configuration):
     TEMPLATES = [
         {
             "BACKEND": "django.template.backends.django.DjangoTemplates",
-            "DIRS": [os.path.join(BASE_DIR, "templates")],
+            "DIRS": [],
             "APP_DIRS": True,
             "OPTIONS": {
                 "context_processors": [
@@ -110,7 +112,7 @@ class Common(Configuration):
     # https://docs.djangoproject.com/en/2.1/howto/static-files/
     STATIC_URL = "/static/"
     STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
-    STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
+    STATICFILES_DIRS = []
     STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
     MEDIA_ROOT = os.path.join(BASE_DIR, "media")
@@ -135,8 +137,9 @@ class Common(Configuration):
     CONTRACTS_DOCUMENT_STORAGE = "django.core.files.storage.FileSystemStorage"
 
     REST_FRAMEWORK = {
-        "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
-        "PAGE_SIZE": 100,
+        "DEFAULT_PAGINATION_CLASS": "contratospr.api.pagination.PageNumberPagination",
+        "DEFAULT_THROTTLE_CLASSES": ("rest_framework.throttling.AnonRateThrottle",),
+        "DEFAULT_THROTTLE_RATES": {"anon": "5000/hour"},
     }
 
 
@@ -150,6 +153,8 @@ class Development(Common):
     ALLOWED_HOSTS = ["*"]
 
     INTERNAL_IPS = ["127.0.0.1"]
+
+    CORS_ORIGIN_ALLOW_ALL = True
 
 
 class Staging(Common):
@@ -181,7 +186,12 @@ class Production(Staging):
 
     CONTRACTS_DOCUMENT_STORAGE = "django_s3_storage.storage.S3Storage"
 
+    CORS_ORIGIN_WHITELIST = ["contratospr.com"]
 
-class Kubernetes(Production):
-    ALLOWED_HOSTS = ["*"]
-    SECURE_REDIRECT_EXEMPT = [r"^health/liveness/$", r"^health/readiness/$"]
+    CACHES = {
+        "default": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": f"{Common.REDIS_URL}/1",
+            "OPTIONS": {"CLIENT_CLASS": "django_redis.client.DefaultClient"},
+        }
+    }

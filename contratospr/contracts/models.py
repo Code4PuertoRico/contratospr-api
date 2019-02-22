@@ -57,14 +57,6 @@ class Entity(BaseModel):
     def __str__(self):
         return self.name
 
-    @property
-    def contracts_count(self):
-        return self.contract_set.filter(parent=None).count()
-
-    @property
-    def contracts_total(self):
-        return sum([contract.amount_to_pay for contract in self.contract_set.all()])
-
 
 class ServiceGroup(BaseModel):
     name = models.CharField(max_length=255, unique=True)
@@ -209,14 +201,6 @@ class Contractor(BaseModel):
     def __str__(self):
         return self.name
 
-    @property
-    def contracts_count(self):
-        return self.contract_set.filter(parent=None).count()
-
-    @property
-    def contracts_total(self):
-        return sum([contract.amount_to_pay for contract in self.contract_set.all()])
-
 
 class Contract(BaseModel):
     entity = models.ForeignKey("Entity", null=True, on_delete=models.SET_NULL)
@@ -234,7 +218,9 @@ class Contract(BaseModel):
     document = models.ForeignKey("Document", null=True, on_delete=models.SET_NULL)
     exempt_id = models.CharField(max_length=255)
     contractors = models.ManyToManyField("Contractor")
-    parent = models.ForeignKey("self", null=True, on_delete=models.CASCADE)
+    parent = models.ForeignKey(
+        "self", null=True, on_delete=models.CASCADE, related_name="amendments"
+    )
 
     search_vector = SearchVectorField(null=True)
 
@@ -246,7 +232,3 @@ class Contract(BaseModel):
             return f"{self.number} - {self.amendment}"
 
         return f"{self.number}"
-
-    @property
-    def amendments(self):
-        return Contract.objects.filter(parent=self)
