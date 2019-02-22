@@ -142,6 +142,8 @@ class Common(Configuration):
         "DEFAULT_THROTTLE_RATES": {"anon": "5000/hour"},
     }
 
+    API_CACHE_TIMEOUT = values.IntegerValue(60 * 60 * 24, environ_prefix=None)
+
 
 class Development(Common):
     """
