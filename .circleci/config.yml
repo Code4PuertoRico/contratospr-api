@@ -38,8 +38,3 @@ jobs:
       - run:
           name: Run flake8
           command: pipenv run flake8
-      - store_test_results:
-          path: test-results
-      - store_artifacts:
-          path: test-results
-          destination: tr1
