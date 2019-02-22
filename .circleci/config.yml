@@ -1,24 +1,45 @@
 version: 2.1
+
 workflows:
   build_test:
     jobs:
       - build_test
+
 jobs:
   build_test:
+    working_directory: ~/contratospr
     docker:
-      - image: circleci/python:3.7
+      - image: circleci/python:3.7.2
+        environment:
+          PIPENV_VENV_IN_PROJECT: true
     steps:
       - checkout
+      - run: sudo chown -R circleci:circleci /usr/local/bin
+      - run: sudo chown -R circleci:circleci /usr/local/lib/python3.7/site-packages
+      - restore_cache:
+          key: deps9-{{ .Branch }}-{{ checksum "Pipfile.lock" }}
       - run:
           name: Install Python Dependencies
           command: |
-            pip install --user --no-cache-dir -r requirements.txt
+            sudo pip install pipenv
+            pipenv install --dev
+      - save_cache:
+          key: deps9-{{ .Branch }}-{{ checksum "Pipfile.lock" }}
+          paths:
+            - '.venv'
+            - '/usr/local/bin'
+            - '/usr/local/lib/python3.7/site-packages'
       - run:
           name: Run black
-          command: ~/.local/bin/black --check .
+          command: pipenv run black --check .
       - run:
           name: Run isort
-          command: ~/.local/bin/isort --recursive --check-only --diff
+          command: pipenv run isort --recursive --check-only --diff
       - run:
           name: Run flake8
-          command: ~/.local/bin/flake8
+          command: pipenv run flake8
+      - store_test_results:
+          path: test-results
+      - store_artifacts:
+          path: test-results
+          destination: tr1
