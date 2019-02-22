@@ -1,0 +1,24 @@
+version: 2.1
+workflows:
+  build_test:
+    jobs:
+      - build_test
+jobs:
+  build_test:
+    docker:
+      - image: circleci/python:3.7
+    steps:
+      - checkout
+      - run:
+          name: Install Python Dependencies
+          command: |
+            pip install --user --no-cache-dir -r requirements.txt
+      - run:
+          name: Run black
+          command: ~/.local/bin/black --check .
+      - run:
+          name: Run isort
+          command: ~/.local/bin/isort --recursive --check-only --diff
+      - run:
+          name: Run flake8
+          command: ~/.local/bin/flake8
