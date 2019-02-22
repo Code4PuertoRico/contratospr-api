@@ -148,8 +148,10 @@ class Common(Configuration):
         "fanout_prefix": True,
         "fanout_patterns": True,
         "visibility_timeout": 3600,
+        "max_connections": 15,
     }
 
+    CELERY_BROKER_POOL_LIMIT = None
     CELERY_TASK_SERIALIZER = "json"
     CELERY_ACCEPT_CONTENT = ["json"]
     CELERY_TASK_ACKS_LATE = True
