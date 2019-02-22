@@ -31,7 +31,7 @@ case "$1" in
     ;;
 
   "start-worker")
-    ./bin/worker --verbose --threads 1 --watch ./contratospr
+    ./bin/worker --loglevel=DEBUG --concurrency=2
     ;;
 
   *)

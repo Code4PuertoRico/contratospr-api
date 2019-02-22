@@ -1,7 +1,6 @@
 #!/bin/bash
+set -x
 
 cd "$(dirname "$0")/.." || exit
 
-celery worker -Ofair \
-  --app=contratospr \
-  --loglevel=INFO
+celery worker -Ofair --app=contratospr $@
