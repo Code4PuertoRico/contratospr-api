@@ -12,11 +12,11 @@ from django.db import models
 from django.utils.functional import cached_property
 from django.utils.module_loading import import_string
 from django_extensions.db.fields import AutoSlugField
-from filepreviews import FilePreviews
 from google.cloud import vision
 from google.oauth2.service_account import Credentials
 from google.protobuf.json_format import MessageToDict
 
+from ..filepreviews import FilePreviews
 from ..utils.models import BaseModel
 
 if settings.FILEPREVIEWS_API_KEY and settings.FILEPREVIEWS_API_SECRET:
