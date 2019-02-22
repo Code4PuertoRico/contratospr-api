@@ -121,10 +121,6 @@ class Common(Configuration):
 
     REDIS_URL = values.Value(environ_prefix=None)
 
-    @property
-    def BROKER_URL(self):
-        return f"{self.REDIS_URL}/0"
-
     FILEPREVIEWS_API_KEY = values.Value(environ_prefix=None)
     FILEPREVIEWS_API_SECRET = values.Value(environ_prefix=None)
 
@@ -143,6 +139,22 @@ class Common(Configuration):
     }
 
     API_CACHE_TIMEOUT = values.IntegerValue(60 * 60 * 24, environ_prefix=None)
+
+    @property
+    def CELERY_BROKER_URL(self):
+        return f"{self.REDIS_URL}/0"
+
+    CELERY_BROKER_TRANSPORT_OPTIONS = {
+        "fanout_prefix": True,
+        "fanout_patterns": True,
+        "visibility_timeout": 3600,
+    }
+
+    CELERY_TASK_SERIALIZER = "json"
+    CELERY_ACCEPT_CONTENT = ["json"]
+    CELERY_TASK_ACKS_LATE = True
+    CELERY_TASK_IGNORE_RESULT = True
+    CELERY_WORKER_PREFETCH_MULTIPLIER = 1
 
 
 class Development(Common):
