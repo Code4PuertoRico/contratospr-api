@@ -31,7 +31,7 @@ def filepreviews_webhook(request):
                     update_fields.append("pages")
 
                 document.save(update_fields=update_fields)
-                detect_text.send(document_id, force=not pages)
+                detect_text.delay(document_id, force=not pages)
                 return JsonResponse({"success": True}, status=200)
 
         except Exception:

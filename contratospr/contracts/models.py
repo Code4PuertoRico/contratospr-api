@@ -16,7 +16,7 @@ from google.cloud import vision
 from google.oauth2.service_account import Credentials
 from google.protobuf.json_format import MessageToDict
 
-from ..filepreviews import FilePreviews
+from ..utils.filepreviews import FilePreviews
 from ..utils.models import BaseModel
 
 if settings.FILEPREVIEWS_API_KEY and settings.FILEPREVIEWS_API_SECRET:

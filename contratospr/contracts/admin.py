@@ -1,6 +1,22 @@
 from django.contrib import admin
+from django.db.models import Q
 
 from .models import Contract, Contractor, Document, Entity, Service, ServiceGroup
+
+
+class DocumentFileListFilter(admin.SimpleListFilter):
+    title = "Has file"
+    parameter_name = "has_file"
+
+    def lookups(self, request, model_admin):
+        return (("yes", "Yes"), ("no", "No"))
+
+    def queryset(self, request, queryset):
+        if self.value() == "yes":
+            return queryset.filter(file__isnull=False).exclude(file="")
+        elif self.value() == "no":
+            return queryset.filter(Q(file__isnull=True) | Q(file=""))
+        return queryset
 
 
 @admin.register(Contract)
@@ -32,7 +48,7 @@ class ContractAdmin(admin.ModelAdmin):
 
         for contract in queryset:
             if not contract.document_id:
-                request_contract_document.send(contract.source_id)
+                request_contract_document.delay(contract.source_id)
 
     request_document.short_description = "Request document for selected contracts"
 
@@ -45,15 +61,24 @@ class ContractorAdmin(admin.ModelAdmin):
 
 @admin.register(Document)
 class DocumentAdmin(admin.ModelAdmin):
-    list_display = ["source_id", "has_text", "created_at", "modified_at"]
+    list_display = ["source_id", "file", "has_text", "created_at", "modified_at"]
     exclude = ["pages"]
     search_fields = ["source_id"]
-    actions = ["detect_text"]
+    actions = ["download_source", "detect_text"]
+    list_filter = [DocumentFileListFilter]
 
     def has_text(self, obj):
         return bool(obj.pages)
 
     has_text.boolean = True
+
+    def download_source(self, request, queryset):
+        from .tasks import download_document
+
+        for document in queryset:
+            download_document.delay(document.pk)
+
+    download_source.short_description = "Download source file"
 
     def detect_text(self, request, queryset):
         from .tasks import detect_text, generate_preview
@@ -61,9 +86,9 @@ class DocumentAdmin(admin.ModelAdmin):
         for document in queryset:
             if document.preview_data:
                 if not document.vision_data:
-                    detect_text.send(document.pk, force=True)
+                    detect_text.delay(document.pk, force=True)
             else:
-                generate_preview.send(document.pk)
+                generate_preview.delay(document.pk)
 
     detect_text.short_description = (
         "Detect text using Vision API for selected documents"

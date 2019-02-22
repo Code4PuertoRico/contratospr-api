@@ -1,12 +1,9 @@
 import datetime
 import re
 
-import dramatiq
 import pytz
-from django.conf import settings
-from dramatiq.rate_limits import ConcurrentRateLimiter
-from dramatiq.rate_limits.backends import RedisBackend
 
+from ..tasks import app
 from .models import Contract, Contractor, Document, Entity, Service, ServiceGroup
 from .scraper import (
     BASE_CONTRACT_URL,
@@ -16,9 +13,6 @@ from .scraper import (
     send_document_request,
 )
 from .search import index_contract
-
-backend = RedisBackend(url=settings.REDIS_URL)
-DISTRIBUTED_MUTEX = ConcurrentRateLimiter(backend, "distributed-mutex", limit=1)
 
 
 def parse_date(value):
@@ -33,7 +27,7 @@ def strip_whitespace(value):
     return value.strip() if value else None
 
 
-@dramatiq.actor
+@app.task
 def expand_contract(contract):
     result = {
         "entity_id": contract["EntityId"],
@@ -81,25 +75,27 @@ def expand_contract(contract):
     return result
 
 
-@dramatiq.actor
+@app.task
 def download_document(document_id):
-    with DISTRIBUTED_MUTEX.acquire():
-        document = Document.objects.get(pk=document_id)
+    document = Document.objects.get(pk=document_id)
 
-        # Download document and upload to S3
-        document.download()
+    # Download document and upload to S3
+    document.download()
+
+    return document
 
 
-@dramatiq.actor
+@app.task
 def generate_preview(document_id):
-    with DISTRIBUTED_MUTEX.acquire():
-        document = Document.objects.get(pk=document_id)
+    document = Document.objects.get(pk=document_id)
 
-        # Try to generate preview with FilePreviews
-        document.generate_preview()
+    # Try to generate preview with FilePreviews
+    document.generate_preview()
+
+    return document
 
 
-@dramatiq.actor
+@app.task
 def detect_text(document_id, force=False):
     # Use Cloud Vision API if no text was extracted with FilePreviews
     document = Document.objects.get(pk=document_id)
@@ -120,13 +116,15 @@ def detect_text(document_id, force=False):
             for contract in document.contract_set.all():
                 index_contract(contract)
 
+    return document
 
-@dramatiq.actor
+
+@app.task
 def request_contract_document(contract_id):
     return send_document_request(contract_id)
 
 
-@dramatiq.actor
+@app.task
 def update_contract(result, parent_id=None):
     entity, _ = Entity.objects.get_or_create(
         source_id=result["entity_id"], defaults={"name": result["entity_name"]}
@@ -161,9 +159,6 @@ def update_contract(result, parent_id=None):
 
         contract_data["document"] = document
 
-        if created:
-            download_document.send(document.pk)
-
     contract, _ = Contract.objects.update_or_create(
         source_id=result["contract_id"], defaults=contract_data
     )
@@ -180,14 +175,14 @@ def update_contract(result, parent_id=None):
         contract.contractors.add(contractor)
 
     for amendment_result in result["amendments"]:
-        update_contract.send(amendment_result, parent_id=contract.pk)
+        update_contract(amendment_result, parent_id=contract.pk)
 
     index_contract(contract)
 
     return contract.pk
 
 
-@dramatiq.actor
+@app.task
 def scrape_contracts(limit=None, date_of_grant_start=None, date_of_grant_end=None):
     offset = 0
     total_records = 0
@@ -206,8 +201,7 @@ def scrape_contracts(limit=None, date_of_grant_start=None, date_of_grant_end=Non
             total_records = limit if limit else contracts["recordsFiltered"]
 
         for contract in contracts["data"]:
-            dramatiq.pipeline(
-                [expand_contract.message(contract), update_contract.message()]
-            ).run()
+            chain = expand_contract.s(contract) | update_contract.s()
+            chain()
 
         offset += real_limit

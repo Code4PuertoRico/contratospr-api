@@ -12,7 +12,7 @@ class Command(BaseCommand):
         parser.add_argument("--date-of-grant-end", nargs="?", type=str, default=None)
 
     def handle(self, *args, **options):
-        scrape_contracts.send(
+        scrape_contracts.delay(
             limit=options["limit"],
             date_of_grant_start=options["date_of_grant_start"],
             date_of_grant_end=options["date_of_grant_end"],

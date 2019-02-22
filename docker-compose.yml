@@ -25,6 +25,7 @@ services:
     build: .
     command: start-worker
     entrypoint: /app/bin/docker-entrypoint
+    restart: on-failure
     env_file:
       - .env
     volumes:
@@ -37,6 +38,7 @@ services:
     build: .
     command: start-web
     entrypoint: /app/bin/docker-entrypoint
+    restart: on-failure
     env_file:
       - .env
     volumes:
