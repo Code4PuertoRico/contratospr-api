@@ -188,10 +188,12 @@ class Production(Staging):
 
     CORS_ORIGIN_WHITELIST = ["contratospr.com"]
 
-    CACHES = {
-        "default": {
-            "BACKEND": "django_redis.cache.RedisCache",
-            "LOCATION": f"{Common.REDIS_URL}/1",
-            "OPTIONS": {"CLIENT_CLASS": "django_redis.client.DefaultClient"},
+    @property
+    def CACHES(self):
+        return {
+            "default": {
+                "BACKEND": "django_redis.cache.RedisCache",
+                "LOCATION": f"{self.REDIS_URL}/1",
+                "OPTIONS": {"CLIENT_CLASS": "django_redis.client.DefaultClient"},
+            }
         }
-    }
