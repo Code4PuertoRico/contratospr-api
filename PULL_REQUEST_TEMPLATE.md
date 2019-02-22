@@ -1,4 +1,4 @@
-*Note*: Before submitting this pull request, please review our [contributing guidelines](https://github.com/TheIndexingProject/tracking-contratos-pr/blob/master/CONTRIBUTING.md).
+*Note*: Before submitting this pull request, please review our [contributing guidelines](https://github.com/TheIndexingProject/contratospr-api/blob/master/CONTRIBUTING.md).
 
 ## Description
 
