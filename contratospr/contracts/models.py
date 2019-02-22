@@ -218,7 +218,9 @@ class Contract(BaseModel):
     document = models.ForeignKey("Document", null=True, on_delete=models.SET_NULL)
     exempt_id = models.CharField(max_length=255)
     contractors = models.ManyToManyField("Contractor")
-    parent = models.ForeignKey("self", null=True, on_delete=models.CASCADE)
+    parent = models.ForeignKey(
+        "self", null=True, on_delete=models.CASCADE, related_name="amendments"
+    )
 
     search_vector = SearchVectorField(null=True)
 
@@ -230,7 +232,3 @@ class Contract(BaseModel):
             return f"{self.number} - {self.amendment}"
 
         return f"{self.number}"
-
-    @property
-    def amendments(self):
-        return Contract.objects.filter(parent=self)

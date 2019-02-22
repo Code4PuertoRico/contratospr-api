@@ -1,10 +1,11 @@
 from django.db.models import Avg, Count, Sum
-from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from ..contracts.models import Contract, Contractor, Entity, Service, ServiceGroup
 from ..contracts.utils import get_current_fiscal_year, get_fiscal_year_range
 from ..utils.aggregates import Median
+from .mixins import CachedAPIViewMixin
 from .serializers import (
     ContractorSerializer,
     ContractSerializer,
@@ -113,115 +114,125 @@ def get_service_trend(fiscal_year):
     }
 
 
-@api_view(["GET"])
-def homepage_api_view(request):
-    serializer = HomeSerializer(data=request.GET)
+class HomePageView(CachedAPIViewMixin, APIView):
+    def get(self, request, format=None):
+        serializer = HomeSerializer(data=request.GET)
 
-    if serializer.is_valid():
-        fiscal_year = serializer.validated_data.get(
-            "fiscal_year", get_current_fiscal_year()
+        if serializer.is_valid():
+            fiscal_year = serializer.validated_data.get(
+                "fiscal_year", get_current_fiscal_year()
+            )
+        else:
+            fiscal_year = get_current_fiscal_year() - 1
+
+        start_date, end_date = get_fiscal_year_range(fiscal_year)
+
+        contracts = (
+            Contract.objects.select_related(
+                "document",
+                "entity",
+                "service",
+                "service__group",
+                "parent__document",
+                "parent__entity",
+                "parent__service",
+                "parent__service__group",
+            )
+            .prefetch_related(
+                "contractors", "parent__contractors", "amendments", "parent__amendments"
+            )
+            .filter(
+                parent=None,
+                effective_date_from__gte=start_date,
+                effective_date_from__lte=end_date,
+            )
         )
-    else:
-        fiscal_year = get_current_fiscal_year() - 1
 
-    start_date, end_date = get_fiscal_year_range(fiscal_year)
+        contracts_total = contracts.aggregate(total=Sum("amount_to_pay"))["total"]
 
-    contracts = (
-        Contract.objects.select_related(
-            "document",
-            "entity",
-            "service",
-            "service__group",
-            "parent__document",
-            "parent__entity",
-            "parent__service",
-            "parent__service__group",
+        recent_contracts = contracts.order_by("-effective_date_from")[:5]
+
+        contractors = (
+            Contractor.objects.prefetch_related("contract_set")
+            .filter(
+                contract__parent=None,
+                contract__effective_date_from__gte=start_date,
+                contract__effective_date_from__lte=end_date,
+            )
+            .annotate(
+                contracts_total=Sum("contract__amount_to_pay"),
+                contracts_count=Count("contract"),
+            )
+            .order_by("-contracts_total")
+        )[:5]
+
+        entities = (
+            Entity.objects.prefetch_related("contract_set")
+            .filter(
+                contract__parent=None,
+                contract__effective_date_from__gte=start_date,
+                contract__effective_date_from__lte=end_date,
+            )
+            .annotate(
+                contracts_total=Sum("contract__amount_to_pay"),
+                contracts_count=Count("contract"),
+            )
+            .order_by("-contracts_total")
+        )[:5]
+
+        serializer_context = {"request": request}
+        recent_contracts_data = ContractSerializer(
+            recent_contracts, context=serializer_context, many=True
+        ).data
+
+        contractors_data = ContractorSerializer(
+            contractors, context=serializer_context, many=True
+        ).data
+
+        entities_data = EntitySerializer(
+            entities, context=serializer_context, many=True
+        ).data
+
+        context = {
+            "fiscal_year": {
+                "current": fiscal_year,
+                "choices": [
+                    choice for choice in serializer.fields["fiscal_year"].choices
+                ],
+            },
+            "recent_contracts": recent_contracts_data,
+            "contractors": contractors_data,
+            "entities": entities_data,
+            "contracts_count": contracts.count(),
+            "contracts_total": contracts_total,
+        }
+
+        return Response(context)
+
+
+class TrendsGeneralView(CachedAPIViewMixin, APIView):
+    def get(self, request, format=None):
+        current_fiscal_year = get_current_fiscal_year()
+
+        fiscal_year = int(request.GET.get("fiscal_year", current_fiscal_year))
+
+        return Response(
+            {
+                "a": get_general_trend(fiscal_year),
+                "b": get_general_trend(fiscal_year - 1),
+            }
         )
-        .prefetch_related("contractors", "parent__contractors")
-        .filter(
-            parent=None,
-            effective_date_from__gte=start_date,
-            effective_date_from__lte=end_date,
+
+
+class TrendsServicesView(CachedAPIViewMixin, APIView):
+    def get(self, request, format=None):
+        current_fiscal_year = get_current_fiscal_year()
+
+        fiscal_year = int(request.GET.get("fiscal_year", current_fiscal_year))
+
+        return Response(
+            {
+                "a": get_service_trend(fiscal_year),
+                "b": get_service_trend(fiscal_year - 1),
+            }
         )
-    )
-
-    contracts_total = contracts.aggregate(total=Sum("amount_to_pay"))["total"]
-
-    recent_contracts = contracts.order_by("-effective_date_from")[:5]
-
-    contractors = (
-        Contractor.objects.prefetch_related("contract_set")
-        .filter(
-            contract__parent=None,
-            contract__effective_date_from__gte=start_date,
-            contract__effective_date_from__lte=end_date,
-        )
-        .annotate(
-            contracts_total=Sum("contract__amount_to_pay"),
-            contracts_count=Count("contract"),
-        )
-        .order_by("-contracts_total")
-    )[:5]
-
-    entities = (
-        Entity.objects.prefetch_related("contract_set")
-        .filter(
-            contract__parent=None,
-            contract__effective_date_from__gte=start_date,
-            contract__effective_date_from__lte=end_date,
-        )
-        .annotate(
-            contracts_total=Sum("contract__amount_to_pay"),
-            contracts_count=Count("contract"),
-        )
-        .order_by("-contracts_total")
-    )[:5]
-
-    serializer_context = {"request": request}
-    recent_contracts_data = ContractSerializer(
-        recent_contracts, context=serializer_context, many=True
-    ).data
-
-    contractors_data = ContractorSerializer(
-        contractors, context=serializer_context, many=True
-    ).data
-
-    entities_data = EntitySerializer(
-        entities, context=serializer_context, many=True
-    ).data
-
-    context = {
-        "fiscal_year": {
-            "current": fiscal_year,
-            "choices": [choice for choice in serializer.fields["fiscal_year"].choices],
-        },
-        "recent_contracts": recent_contracts_data,
-        "contractors": contractors_data,
-        "entities": entities_data,
-        "contracts_count": contracts.count(),
-        "contracts_total": contracts_total,
-    }
-
-    return Response(context)
-
-
-@api_view(["GET"])
-def trends_general_api_view(request):
-    current_fiscal_year = get_current_fiscal_year()
-
-    fiscal_year = int(request.GET.get("fiscal_year", current_fiscal_year))
-
-    return Response(
-        {"a": get_general_trend(fiscal_year), "b": get_general_trend(fiscal_year - 1)}
-    )
-
-
-@api_view(["GET"])
-def trends_services_api_view(request):
-    current_fiscal_year = get_current_fiscal_year()
-
-    fiscal_year = int(request.GET.get("fiscal_year", current_fiscal_year))
-
-    return Response(
-        {"a": get_service_trend(fiscal_year), "b": get_service_trend(fiscal_year - 1)}
-    )

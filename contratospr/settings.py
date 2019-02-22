@@ -137,7 +137,9 @@ class Common(Configuration):
     CONTRACTS_DOCUMENT_STORAGE = "django.core.files.storage.FileSystemStorage"
 
     REST_FRAMEWORK = {
-        "DEFAULT_PAGINATION_CLASS": "contratospr.api.pagination.PageNumberPagination"
+        "DEFAULT_PAGINATION_CLASS": "contratospr.api.pagination.PageNumberPagination",
+        "DEFAULT_THROTTLE_CLASSES": ("rest_framework.throttling.AnonRateThrottle",),
+        "DEFAULT_THROTTLE_RATES": {"anon": "5000/hour"},
     }
 
 
@@ -185,3 +187,11 @@ class Production(Staging):
     CONTRACTS_DOCUMENT_STORAGE = "django_s3_storage.storage.S3Storage"
 
     CORS_ORIGIN_WHITELIST = ["contratospr.com"]
+
+    CACHES = {
+        "default": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": f"{Common.REDIS_URL}/1",
+            "OPTIONS": {"CLIENT_CLASS": "django_redis.client.DefaultClient"},
+        }
+    }

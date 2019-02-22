@@ -17,6 +17,7 @@ from .filters import (
     ServiceFilter,
     SimpleDjangoFilterBackend,
 )
+from .mixins import CachedAPIViewMixin
 from .schemas import ContractSchema
 from .serializers import (
     ContractorSerializer,
@@ -28,7 +29,11 @@ from .serializers import (
 )
 
 
-class ContractViewSet(viewsets.ReadOnlyModelViewSet):
+class CachedReadOnlyModelViewSet(CachedAPIViewMixin, viewsets.ReadOnlyModelViewSet):
+    pass
+
+
+class ContractViewSet(CachedReadOnlyModelViewSet):
     schema = ContractSchema()
     queryset = (
         Contract.objects.select_related(
@@ -41,7 +46,9 @@ class ContractViewSet(viewsets.ReadOnlyModelViewSet):
             "parent__service",
             "parent__service__group",
         )
-        .prefetch_related("contractors", "parent__contractors")
+        .prefetch_related(
+            "contractors", "parent__contractors", "amendments", "parent__amendments"
+        )
         .all()
     )
     serializer_class = ContractSerializer
@@ -63,7 +70,7 @@ class ContractViewSet(viewsets.ReadOnlyModelViewSet):
     lookup_field = "slug"
 
 
-class ContractorViewSet(viewsets.ReadOnlyModelViewSet):
+class ContractorViewSet(CachedReadOnlyModelViewSet):
     queryset = Contractor.objects.all().annotate(
         contracts_total=Sum("contract__amount_to_pay"),
         contracts_count=Count("contract"),
@@ -81,12 +88,14 @@ class ContractorViewSet(viewsets.ReadOnlyModelViewSet):
     lookup_field = "slug"
 
 
-class DocumentViewSet(mixins.RetrieveModelMixin, viewsets.GenericViewSet):
+class DocumentViewSet(
+    CachedAPIViewMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet
+):
     queryset = Document.objects.all()
     serializer_class = DocumentSerializer
 
 
-class EntityViewSet(viewsets.ReadOnlyModelViewSet):
+class EntityViewSet(CachedReadOnlyModelViewSet):
     queryset = Entity.objects.all().annotate(
         contracts_total=Sum("contract__amount_to_pay"),
         contracts_count=Count("contract"),
@@ -104,7 +113,7 @@ class EntityViewSet(viewsets.ReadOnlyModelViewSet):
     lookup_field = "slug"
 
 
-class ServiceGroupViewSet(viewsets.ReadOnlyModelViewSet):
+class ServiceGroupViewSet(CachedReadOnlyModelViewSet):
     queryset = ServiceGroup.objects.all()
     serializer_class = ServiceGroupSerializer
     filter_backends = [filters.OrderingFilter, filters.SearchFilter]
@@ -114,7 +123,7 @@ class ServiceGroupViewSet(viewsets.ReadOnlyModelViewSet):
     lookup_field = "slug"
 
 
-class ServiceViewSet(viewsets.ReadOnlyModelViewSet):
+class ServiceViewSet(CachedReadOnlyModelViewSet):
     queryset = Service.objects.select_related("group").all()
     serializer_class = ServiceSerializer
     filterset_class = ServiceFilter
