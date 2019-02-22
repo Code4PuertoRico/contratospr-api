@@ -89,6 +89,7 @@ local_settings.py
 db.sqlite3
 staticfiles
 media
+.venv
 
 node_modules
 
