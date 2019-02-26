@@ -88,9 +88,7 @@ class ContractorViewSet(CachedReadOnlyModelViewSet):
     lookup_field = "slug"
 
 
-class DocumentViewSet(
-    CachedAPIViewMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet
-):
+class DocumentViewSet(mixins.RetrieveModelMixin, viewsets.GenericViewSet):
     queryset = Document.objects.all()
     serializer_class = DocumentSerializer
 
