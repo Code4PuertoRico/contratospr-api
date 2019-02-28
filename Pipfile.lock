@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "29dc4cbb7f1e07dd5bc08fef6b902d21044a892e560018fa8f580f483f17b780"
+            "sha256": "db95de7f2bfc0a9d552eeb038c87ba0dc2490b65cf8fa530df25e78fbc750a65"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -23,6 +23,13 @@
             ],
             "version": "==2.4.1"
         },
+        "aspy.refactor-imports": {
+            "hashes": [
+                "sha256:ceb44390e6ee0863d7acd5e24429ad12cbfab5dd9924ddb410753945871702f8",
+                "sha256:f980a46aaed6b9b7f3a9fc78c83ec49e530c37a830d57cacb4511670231d2a52"
+            ],
+            "version": "==1.0.2"
+        },
         "billiard": {
             "hashes": [
                 "sha256:42d9a227401ac4fba892918bba0a0c409def5435c4b483267ebfe821afaaba0e"
@@ -42,6 +49,13 @@
                 "sha256:99b4302571675ac4b692275634e14e0c76009da54520af3e77bd4b29d7844c5e"
             ],
             "version": "==1.12.104"
+        },
+        "cached-property": {
+            "hashes": [
+                "sha256:3a026f1a54135677e7da5ce819b0c690f156f37976f3e30c5430740725203d7f",
+                "sha256:9217a59f14a5682da7c4b8829deadbfc194ac22e9908ccf7c8820234e80a1504"
+            ],
+            "version": "==1.5.1"
         },
         "cachetools": {
             "hashes": [
@@ -481,6 +495,14 @@
             ],
             "version": "==0.2.0"
         },
+        "seed-isort-config": {
+            "hashes": [
+                "sha256:5c26f7c3bd05b1693cef8c2eac493aa2366b5befa14a83c9a29adead57641972",
+                "sha256:d76d6a8098301c901dca3fd2a84160a169b27133b22fb40f6de4c8333f4e5c5c"
+            ],
+            "index": "pypi",
+            "version": "==1.6.0"
+        },
         "six": {
             "hashes": [
                 "sha256:3350809f0555b11f552448330d0b52d5f24c91a322ea4a15ef22629740f3761c",
@@ -591,6 +613,13 @@
             ],
             "version": "==1.4.3"
         },
+        "aspy.refactor-imports": {
+            "hashes": [
+                "sha256:ceb44390e6ee0863d7acd5e24429ad12cbfab5dd9924ddb410753945871702f8",
+                "sha256:f980a46aaed6b9b7f3a9fc78c83ec49e530c37a830d57cacb4511670231d2a52"
+            ],
+            "version": "==1.0.2"
+        },
         "aspy.yaml": {
             "hashes": [
                 "sha256:19dd2ee74f96b72a3096d78be1a872914c70982299cda137725478954870a896",
@@ -612,6 +641,13 @@
             ],
             "index": "pypi",
             "version": "==18.9b0"
+        },
+        "cached-property": {
+            "hashes": [
+                "sha256:3a026f1a54135677e7da5ce819b0c690f156f37976f3e30c5430740725203d7f",
+                "sha256:9217a59f14a5682da7c4b8829deadbfc194ac22e9908ccf7c8820234e80a1504"
+            ],
+            "version": "==1.5.1"
         },
         "cfgv": {
             "hashes": [
@@ -700,9 +736,17 @@
         },
         "pyyaml": {
             "hashes": [
-                "sha256:b21fadf0e343c3738cc956be9d24ee7a83d3260ff1a6805f860b4f5d4645b7b9"
+                "sha256:0b83c5697aed17a27efbb631a6a3846501375c6e55112a665b210f223fa69629"
             ],
-            "version": "==5.1b1"
+            "version": "==5.1b3"
+        },
+        "seed-isort-config": {
+            "hashes": [
+                "sha256:5c26f7c3bd05b1693cef8c2eac493aa2366b5befa14a83c9a29adead57641972",
+                "sha256:d76d6a8098301c901dca3fd2a84160a169b27133b22fb40f6de4c8333f4e5c5c"
+            ],
+            "index": "pypi",
+            "version": "==1.6.0"
         },
         "six": {
             "hashes": [
