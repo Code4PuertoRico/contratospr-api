@@ -100,21 +100,13 @@ def detect_text(document_id, force=False):
     # Use Cloud Vision API if no text was extracted with FilePreviews
     document = Document.objects.get(pk=document_id)
 
-    if document.preview_data:
-        extracted_text = []
+    document.detect_text(force=force)
 
-        original_file = document.preview_data["original_file"] or {
-            "metadata": {"ocr": []}
-        }
+    for contract in document.contract_set.all():
+        index_contract(contract)
 
-        for ocr_result in original_file["metadata"]["ocr"]:
-            extracted_text.append(ocr_result["text"].strip())
-
-        if force or len("".join(extracted_text)) < 100:
-            document.detect_text()
-
-            for contract in document.contract_set.all():
-                index_contract(contract)
+    if not document.pages:
+        generate_preview.delay(document_id)
 
     return document
 
