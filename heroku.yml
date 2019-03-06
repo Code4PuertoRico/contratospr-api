@@ -2,6 +2,10 @@ build:
   docker:
     web: Dockerfile
     worker: Dockerfile
+release:
+  image: web
+  command:
+    - python manage.py collectstatic --noinput
 run:
   web: ./bin/web
   worker: ./bin/worker --loglevel=INFO --concurrency=2
