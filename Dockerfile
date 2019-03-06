@@ -36,3 +36,6 @@ RUN pipenv install --deploy --system && \
 
 # Bundle app source
 COPY . /app/
+
+RUN adduser --disabled-login app
+USER app
