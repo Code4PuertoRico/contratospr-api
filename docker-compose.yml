@@ -22,7 +22,9 @@ services:
       - redis:/data
 
   worker:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
     command: start-worker
     entrypoint: /app/bin/docker-entrypoint
     restart: on-failure
@@ -35,7 +37,9 @@ services:
       - redis:redis
 
   web:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile.web
     command: start-web
     entrypoint: /app/bin/docker-entrypoint
     restart: on-failure
