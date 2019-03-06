@@ -18,6 +18,7 @@ from google.protobuf.json_format import MessageToDict
 
 from ..utils.filepreviews import FilePreviews
 from ..utils.models import BaseModel
+from ..utils.pdftotext import pdf_to_text
 
 if settings.FILEPREVIEWS_API_KEY and settings.FILEPREVIEWS_API_SECRET:
     filepreviews = FilePreviews(
@@ -155,13 +156,45 @@ class Document(BaseModel):
             self.update_preview_data(response)
             self.save(update_fields=["preview_data_file"])
 
-    def detect_text(self):
-        if self.preview_data and self.preview_data["thumbnails"] and credentials:
+    def detect_text(self, force=False):
+        preview_thumbnails = (self.preview_data or {}).get("thumbnails") or []
+        use_cloud_vision = force and preview_thumbnails and credentials
+
+        pages = []
+        output = pdf_to_text(self.file)
+
+        for number, page in enumerate(output.split(b"\f"), start=1):
+            text = page.strip().decode("utf-8")
+
+            if text:
+                pages.append({"number": number, "text": text})
+
+        if pages:
+            self.pages = pages
+            return self.save(update_fields=["pages"])
+
+        if self.preview_data and not use_cloud_vision:
+            pages = []
+            original_file = self.preview_data["original_file"] or {
+                "metadata": {"ocr": []}
+            }
+
+            for result in original_file["metadata"]["ocr"]:
+                text = result.get("text", "").strip()
+
+                if text:
+                    pages.append({"number": result["page"], "text": text})
+
+            if pages:
+                self.pages = pages
+                return self.save(update_fields=["pages"])
+
+        if use_cloud_vision:
             client = vision.ImageAnnotatorClient(credentials=credentials)
             results = []
             pages = []
 
-            for thumbnail in self.preview_data["thumbnails"]:
+            for thumbnail in preview_thumbnails:
                 image = vision.types.Image()
                 image.source.image_uri = thumbnail["url"]
                 response = client.document_text_detection(image=image)
@@ -173,20 +206,20 @@ class Document(BaseModel):
                 text_annotations = result.get("textAnnotations")
 
                 if full_text_annotation:
-                    pages.append(
-                        {"number": result["page"], "text": full_text_annotation["text"]}
-                    )
-                elif text_annotations:
-                    pages.append(
-                        {
-                            "number": result["page"],
-                            "text": text_annotations[0]["description"],
-                        }
-                    )
+                    text = full_text_annotation.get("text", "").strip()
 
-            self.pages = pages
-            self.update_vision_data(results)
-            self.save(update_fields=["vision_data_file", "pages"])
+                    if text:
+                        pages.append({"number": result["page"], "text": text})
+                elif text_annotations:
+                    text = text_annotations[0].get("description", "").strip()
+
+                    if text:
+                        pages.append({"number": result["page"], "text": text})
+
+                if pages:
+                    self.pages = pages
+                    self.update_vision_data(results)
+                    return self.save(update_fields=["vision_data_file", "pages"])
 
 
 class Contractor(BaseModel):

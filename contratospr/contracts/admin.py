@@ -61,7 +61,15 @@ class ContractorAdmin(admin.ModelAdmin):
 
 @admin.register(Document)
 class DocumentAdmin(admin.ModelAdmin):
-    list_display = ["source_id", "file", "has_text", "created_at", "modified_at"]
+    list_display = [
+        "source_id",
+        "file",
+        "has_text",
+        "used_filepreviews",
+        "used_cloud_vision",
+        "created_at",
+        "modified_at",
+    ]
     exclude = ["pages"]
     search_fields = ["source_id"]
     actions = ["download_source", "detect_text"]
@@ -72,6 +80,16 @@ class DocumentAdmin(admin.ModelAdmin):
 
     has_text.boolean = True
 
+    def used_filepreviews(self, obj):
+        return bool(obj.preview_data_file)
+
+    used_filepreviews.boolean = True
+
+    def used_cloud_vision(self, obj):
+        return bool(obj.vision_data_file)
+
+    used_cloud_vision.boolean = True
+
     def download_source(self, request, queryset):
         from .tasks import download_document
 
@@ -81,18 +99,16 @@ class DocumentAdmin(admin.ModelAdmin):
     download_source.short_description = "Download source file"
 
     def detect_text(self, request, queryset):
-        from .tasks import detect_text, generate_preview
+        from .tasks import detect_text
 
         for document in queryset:
             if document.preview_data:
                 if not document.vision_data:
                     detect_text.delay(document.pk, force=True)
             else:
-                generate_preview.delay(document.pk)
+                detect_text.delay(document.pk)
 
-    detect_text.short_description = (
-        "Detect text using Vision API for selected documents"
-    )
+    detect_text.short_description = "Detect text for selected documents"
 
 
 @admin.register(Entity)
