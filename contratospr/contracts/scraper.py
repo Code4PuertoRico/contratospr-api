@@ -51,7 +51,7 @@ def get_amendments(contract_number, entity_id):
     return response.json()
 
 
-def get_contracts(offset, limit, date_of_grant_start=None, date_of_grant_end=None):
+def get_contracts(offset, limit, **kwargs):
     response = requests.post(
         f"{BASE_CONTRACT_URL}/search",
         json={
@@ -138,17 +138,17 @@ def get_contracts(offset, limit, date_of_grant_start=None, date_of_grant_end=Non
             "order": [{"column": 3, "dir": "desc"}, {"column": 6, "dir": "desc"}],
             "start": offset,
             "length": limit,
-            "EntityId": None,
-            "ContractNumber": None,
-            "ContractorName": None,
-            "DateOfGrantFrom": date_of_grant_start,
-            "DateOfGrantTo": date_of_grant_end,
-            "EffectiveDateFrom": None,
-            "EffectiveDateTo": None,
-            "AmountFrom": None,
-            "AmountTo": None,
-            "ServiceGroupId": None,
-            "ServiceId": None,
+            "EntityId": kwargs.get("entity_id"),
+            "ContractNumber": kwargs.get("contract_number"),
+            "ContractorName": kwargs.get("contractor_name"),
+            "DateOfGrantFrom": kwargs.get("date_of_grant_start"),
+            "DateOfGrantTo": kwargs.get("date_of_grant_end"),
+            "EffectiveDateFrom": kwargs.get("effective_date_start"),
+            "EffectiveDateTo": kwargs.get("effective_date_end"),
+            "AmountFrom": kwargs.get("amount_from"),
+            "AmountTo": kwargs.get("amount_to"),
+            "ServiceGroupId": kwargs.get("service_group_id"),
+            "ServiceId": kwargs.get("service_id"),
         },
         headers={"user-agent": random.choice(USER_AGENTS)},
     )

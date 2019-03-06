@@ -175,19 +175,14 @@ def update_contract(result, parent_id=None):
 
 
 @app.task
-def scrape_contracts(limit=None, date_of_grant_start=None, date_of_grant_end=None):
+def scrape_contracts(limit=None, **kwargs):
     offset = 0
     total_records = 0
     default_limit = 1000
 
     while offset <= total_records:
         real_limit = limit or default_limit
-        contracts = get_contracts(
-            offset,
-            real_limit,
-            date_of_grant_start=date_of_grant_start,
-            date_of_grant_end=date_of_grant_end,
-        )
+        contracts = get_contracts(offset, real_limit, **kwargs)
 
         if not total_records:
             total_records = limit if limit else contracts["recordsFiltered"]

@@ -10,10 +10,16 @@ class Command(BaseCommand):
         parser.add_argument("--limit", nargs="?", type=int, default=None)
         parser.add_argument("--date-of-grant-start", nargs="?", type=str, default=None)
         parser.add_argument("--date-of-grant-end", nargs="?", type=str, default=None)
+        parser.add_argument("--entity-id", nargs="?", type=str, default=None)
+        parser.add_argument("--contract-number", nargs="?", type=str, default=None)
+        parser.add_argument("--contractor-name", nargs="?", type=str, default=None)
+        parser.add_argument("--effective-date-start", nargs="?", type=str, default=None)
+        parser.add_argument("--effective-date-end", nargs="?", type=str, default=None)
+        parser.add_argument("--amount-from", nargs="?", type=str, default=None)
+        parser.add_argument("--amount-to", nargs="?", type=str, default=None)
+        parser.add_argument("--service-group-id", nargs="?", type=str, default=None)
+        parser.add_argument("--service-id", nargs="?", type=str, default=None)
 
     def handle(self, *args, **options):
-        scrape_contracts.delay(
-            limit=options["limit"],
-            date_of_grant_start=options["date_of_grant_start"],
-            date_of_grant_end=options["date_of_grant_end"],
-        )
+        limit = options.pop("limit", None)
+        scrape_contracts.delay(limit=limit, **options)
