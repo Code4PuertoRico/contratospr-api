@@ -159,6 +159,8 @@ class Common(Configuration):
     CELERY_TASK_IGNORE_RESULT = True
     CELERY_WORKER_PREFETCH_MULTIPLIER = 1
 
+    CORS_ORIGIN_ALLOW_ALL = True
+
 
 class Development(Common):
     """
@@ -170,8 +172,6 @@ class Development(Common):
     ALLOWED_HOSTS = ["*"]
 
     INTERNAL_IPS = ["127.0.0.1"]
-
-    CORS_ORIGIN_ALLOW_ALL = True
 
 
 class Staging(Common):
@@ -202,8 +202,6 @@ class Production(Staging):
     AWS_S3_BUCKET_NAME = values.Value(environ_prefix=None)
 
     CONTRACTS_DOCUMENT_STORAGE = "django_s3_storage.storage.S3Storage"
-
-    CORS_ORIGIN_WHITELIST = ["contratospr.com"]
 
     @property
     def CACHES(self):
