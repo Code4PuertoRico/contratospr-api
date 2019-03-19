@@ -38,3 +38,6 @@ jobs:
       - run:
           name: Run flake8
           command: pipenv run flake8
+      - run:
+          name: Run tests
+          command: pytest
