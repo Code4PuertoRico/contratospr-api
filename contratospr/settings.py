@@ -7,9 +7,39 @@ https://docs.djangoproject.com/en/2.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/2.1/ref/settings/
 """
+import logging.config
 import os
 
+import structlog
 from configurations import Configuration, values
+
+LOGGING_CONFIG = None
+logging.config.dictConfig(
+    {
+        "version": 1,
+        "disable_existing_loggers": False,
+        "handlers": {"console": {"class": "logging.StreamHandler"}},
+        "loggers": {
+            "": {"level": "WARNING", "handlers": ["console"], "formatter": "default"},
+            "contratospr": {
+                "level": "INFO",
+                "handlers": ["console"],
+                "propagate": False,
+            },
+            "requests": {
+                "level": "WARNING",
+                "handlers": ["console"],
+                "propagate": False,
+            },
+            "urllib3": {
+                "level": "WARNING",
+                "handlers": ["console"],
+                "propagate": False,
+            },
+            "celery": {"level": "INFO", "handlers": ["console"], "propagate": False},
+        },
+    }
+)
 
 
 class Common(Configuration):
@@ -174,9 +204,9 @@ class Development(Common):
     INTERNAL_IPS = ["127.0.0.1"]
 
 
-class Staging(Common):
+class Production(Common):
     """
-    The in-staging settings.
+    The in-production settings.
     """
 
     # Security
@@ -189,12 +219,6 @@ class Staging(Common):
     SECURE_SSL_HOST = values.Value(None)
     SECURE_SSL_REDIRECT = values.BooleanValue(True)
     SECURE_PROXY_SSL_HEADER = values.TupleValue(("HTTP_X_FORWARDED_PROTO", "https"))
-
-
-class Production(Staging):
-    """
-    The in-production settings.
-    """
 
     AWS_REGION = values.Value("us-east-1", environ_prefix=None)
     AWS_ACCESS_KEY_ID = values.SecretValue(environ_prefix=None)
@@ -212,3 +236,22 @@ class Production(Staging):
                 "OPTIONS": {"CLIENT_CLASS": "django_redis.client.DefaultClient"},
             }
         }
+
+
+structlog.configure(
+    processors=[
+        structlog.stdlib.filter_by_level,
+        structlog.stdlib.add_logger_name,
+        structlog.stdlib.add_log_level,
+        structlog.stdlib.PositionalArgumentsFormatter(),
+        structlog.processors.TimeStamper(fmt="iso"),
+        structlog.processors.StackInfoRenderer(),
+        structlog.processors.format_exc_info,
+        structlog.processors.UnicodeDecoder(),
+        structlog.processors.KeyValueRenderer(),
+    ],
+    context_class=structlog.threadlocal.wrap_dict(dict),
+    logger_factory=structlog.stdlib.LoggerFactory(),
+    wrapper_class=structlog.stdlib.BoundLogger,
+    cache_logger_on_first_use=True,
+)
