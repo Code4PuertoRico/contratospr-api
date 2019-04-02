@@ -2,6 +2,7 @@ import datetime
 import re
 
 import pytz
+from structlog import get_logger
 
 from ..tasks import app
 from .models import Contract, Contractor, Document, Entity, Service, ServiceGroup
@@ -13,6 +14,8 @@ from .scraper import (
     send_document_request,
 )
 from .search import index_contract
+
+logger = get_logger(__name__)
 
 
 def parse_date(value):
@@ -29,6 +32,8 @@ def strip_whitespace(value):
 
 @app.task
 def expand_contract(contract):
+    logger.info("Expanding contract", contract=contract["ContractNumber"])
+
     result = {
         "entity_id": contract["EntityId"],
         "entity_name": strip_whitespace(contract["EntityName"]),
@@ -118,6 +123,10 @@ def request_contract_document(contract_id):
 
 @app.task
 def update_contract(result, parent_id=None):
+    logger.info(
+        "Updating contract", contract=result["contract_number"], parent_id=parent_id
+    )
+
     entity, _ = Entity.objects.get_or_create(
         source_id=result["entity_id"], defaults={"name": result["entity_name"]}
     )
@@ -175,20 +184,28 @@ def update_contract(result, parent_id=None):
 
 
 @app.task
-def scrape_contracts(limit=None, **kwargs):
+def scrape_contracts(limit=None, max_items=None, **kwargs):
     offset = 0
     total_records = 0
-    default_limit = 1000
+    default_limit = 10
+    real_limit = limit or default_limit
 
     while offset <= total_records:
-        real_limit = limit or default_limit
+        logger.info(
+            "Scraping contracts",
+            limit=limit,
+            real_limit=real_limit,
+            offset=offset,
+            total_records=total_records,
+        )
+
         contracts = get_contracts(offset, real_limit, **kwargs)
 
         if not total_records:
-            total_records = limit if limit else contracts["recordsFiltered"]
+            total_records = max_items if max_items else contracts["recordsFiltered"]
 
         for contract in contracts["data"]:
-            chain = expand_contract.s(contract) | update_contract.s()
-            chain()
+            expanded = expand_contract(contract)
+            update_contract(expanded)
 
         offset += real_limit

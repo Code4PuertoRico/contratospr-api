@@ -7,6 +7,7 @@ class Command(BaseCommand):
     help = "Scrape search results"
 
     def add_arguments(self, parser):
+        parser.add_argument("--max-items", nargs="?", type=int, default=None)
         parser.add_argument("--limit", nargs="?", type=int, default=None)
         parser.add_argument("--date-of-grant-start", nargs="?", type=str, default=None)
         parser.add_argument("--date-of-grant-end", nargs="?", type=str, default=None)
@@ -22,4 +23,5 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         limit = options.pop("limit", None)
-        scrape_contracts.delay(limit=limit, **options)
+        max_items = options.pop("max_items", None)
+        scrape_contracts.delay(limit=limit, max_items=max_items, **options)

@@ -135,7 +135,7 @@ def get_contracts(offset, limit, **kwargs):
                     "search": {"value": "", "regex": False},
                 },
             ],
-            "order": [{"column": 3, "dir": "desc"}, {"column": 6, "dir": "desc"}],
+            "order": [{"column": 1, "dir": "desc"}],
             "start": offset,
             "length": limit,
             "EntityId": kwargs.get("entity_id"),
