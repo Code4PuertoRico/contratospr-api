@@ -57,3 +57,19 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+
+  test:
+    build:
+      context: .
+      dockerfile: Dockerfile.local
+    command: start-test
+    entrypoint: /app/bin/docker-entrypoint
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+    ports:
+      - '8000:8000'
+    links:
+      - database:database
+      - redis:redis
