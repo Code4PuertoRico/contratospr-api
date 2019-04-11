@@ -87,12 +87,14 @@ If you want to go the usual route and run the project locally, though:
 - Install pre-commit hooks: `pipenv run pre-commit install`
 - Setup environment file: `cp example.env .env`
 - Install docker-compose: https://docs.docker.com/compose/install/
-- Build and start containers: `docker-compose up -d`
+- Build and start containers, including test container: `docker-compose up -d`
 - Create super user: `docker-compose exec web python manage.py createsuperuser`
 - Scrape some contracts: `docker-compose exec web python manage.py scrape_contracts --limit 100`
 - open http://localhost:8000
 
 And you should be ready to go!
+
+You can use this command to run tests on demand: `docker-compose up test`
 
 ## Contribute Documentation
 
@@ -133,6 +135,7 @@ To contribute code:
 * Write tests that verify that your contribution works as expected.
 * Write clear, concise commit message(s).
 * Dependency updates, additions, or removals must be in individual commits.
+* Ensure old tests are still passing.
 * Go to https://github.com/TheIndexingProject/contratospr-api/pulls and open a new pull request with your changes.
 * If your PR is connected to an open issue, add a line in your PR's description that says `Fixes: #123`, where `#123` is the number of the issue you're fixing.
 
