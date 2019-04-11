@@ -34,8 +34,8 @@ case "$1" in
     ./bin/worker --loglevel=DEBUG --concurrency=2
     ;;
 
-  "start-test")
-    pipenv run pytest
+  "run-tests")
+    pytest
     ;;
 
   *)

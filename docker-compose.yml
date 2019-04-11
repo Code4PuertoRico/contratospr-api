@@ -24,7 +24,9 @@ services:
   worker:
     build:
       context: .
-      dockerfile: Dockerfile.worker
+      dockerfile: Dockerfile
+      args:
+        PIPENV_ARGS: --dev
     command: start-worker
     entrypoint: /app/bin/docker-entrypoint
     restart: on-failure
@@ -39,7 +41,9 @@ services:
   web:
     build:
       context: .
-      dockerfile: Dockerfile.web
+      dockerfile: Dockerfile
+      args:
+        PIPENV_ARGS: --dev
     command: start-web
     entrypoint: /app/bin/docker-entrypoint
     restart: on-failure
@@ -58,18 +62,18 @@ services:
       timeout: 10s
       retries: 3
 
-  test:
+  tests:
     build:
       context: .
-      dockerfile: Dockerfile.local
-    command: start-test
+      dockerfile: Dockerfile
+      args:
+        PIPENV_ARGS: --dev
+    command: run-tests
     entrypoint: /app/bin/docker-entrypoint
     env_file:
       - .env
     volumes:
       - .:/app
-    ports:
-      - '8000:8000'
     links:
       - database:database
       - redis:redis
