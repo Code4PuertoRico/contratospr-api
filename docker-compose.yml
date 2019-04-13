@@ -70,8 +70,9 @@ services:
         PIPENV_ARGS: --dev
     command: run-tests
     entrypoint: /app/bin/docker-entrypoint
-    env_file:
-      - .env
+    environment:
+      - DATABASE_URL=postgres://postgres:password@database/postgres
+      - REDIS_URL=redis://redis:6379
     volumes:
       - .:/app
     links:

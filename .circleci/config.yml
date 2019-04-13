@@ -30,14 +30,5 @@ jobs:
             - '/usr/local/bin'
             - '/usr/local/lib/python3.7/site-packages'
       - run:
-          name: Run black
-          command: pipenv run black --check .
-      - run:
-          name: Run isort
-          command: pipenv run isort --recursive --check-only --diff
-      - run:
-          name: Run flake8
-          command: pipenv run flake8
-      - run:
           name: Run tests
-          command: pipenv run pytest
+          command: pipenv run python runtests.py

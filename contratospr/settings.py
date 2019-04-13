@@ -237,12 +237,19 @@ class Production(Common):
             }
         }
 
-    class Testing(Common):
-        PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
 
-        CELERY_TASK_IGNORE_RESULT = True
-        CELERY_TASK_ALWAYS_EAGER = True
-        CELERY_TASK_EAGER_PROPAGATES = True
+class Testing(Common):
+    PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
+
+    CELERY_TASK_IGNORE_RESULT = True
+    CELERY_TASK_ALWAYS_EAGER = True
+    CELERY_TASK_EAGER_PROPAGATES = True
+
+    SECRET_KEY = "dont-tell-eve"
+    GOOGLE_APPLICATION_CREDENTIALS = ""
+    AWS_ACCESS_KEY_ID = ""
+    AWS_S3_BUCKET_NAME = ""
+    AWS_SECRET_ACCESS_KEY = ""
 
 
 structlog.configure(

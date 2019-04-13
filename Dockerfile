@@ -24,6 +24,7 @@ FROM python:3.7
 ARG PIPENV_ARGS
 
 ENV LANG en_US.utf8
+ENV PYTHONUNBUFFERED 1
 
 RUN pip install pipenv==2018.11.26
 
