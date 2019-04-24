@@ -2,6 +2,8 @@ import random
 
 import requests
 
+from ..utils.requests_retry import requests_retry_session
+
 BASE_URL = "https://consultacontratos.ocpr.gov.pr"
 BASE_CONTRACT_URL = f"{BASE_URL}/contract"
 BASE_CONTRACTOR_URL = f"{BASE_URL}/contractor"
@@ -21,6 +23,9 @@ USER_AGENTS = [
 ]
 
 
+session = requests_retry_session(retries=3, backoff_factor=0.3)
+
+
 def send_document_request(contract_id):
     response = requests.post(
         f"{BASE_CONTRACT_URL}/senddocumentrequest",
@@ -32,7 +37,7 @@ def send_document_request(contract_id):
 
 
 def get_contractors(contract_id):
-    response = requests.post(
+    response = session.post(
         f"{BASE_CONTRACTOR_URL}/findbycontractid",
         json={"contractId": contract_id},
         headers={"user-agent": random.choice(USER_AGENTS)},
@@ -42,7 +47,7 @@ def get_contractors(contract_id):
 
 
 def get_amendments(contract_number, entity_id):
-    response = requests.post(
+    response = session.post(
         f"{BASE_CONTRACT_URL}/getamendments",
         json={"contractNumber": contract_number, "entityId": entity_id},
         headers={"user-agent": random.choice(USER_AGENTS)},
@@ -52,7 +57,7 @@ def get_amendments(contract_number, entity_id):
 
 
 def get_contracts(offset, limit, **kwargs):
-    response = requests.post(
+    response = session.post(
         f"{BASE_CONTRACT_URL}/search",
         json={
             "draw": 1,
@@ -154,3 +159,12 @@ def get_contracts(offset, limit, **kwargs):
     )
 
     return response.json()
+
+
+def get_entities():
+    response = session.get(
+        f"{BASE_URL}/entity/findby?name=&pageIndex=1&pageSize=1000",
+        headers={"user-agent": random.choice(USER_AGENTS)},
+    )
+
+    return response.json().get("Results", [])

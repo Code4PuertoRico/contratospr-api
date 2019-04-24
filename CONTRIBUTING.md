@@ -87,9 +87,9 @@ If you want to go the usual route and run the project locally, though:
 - Install pre-commit hooks: `pipenv run pre-commit install`
 - Setup environment file: `cp example.env .env`
 - Install docker-compose: https://docs.docker.com/compose/install/
+- [Download latest database dump](docs/database-dump.md)
 - Build and start containers, including test container: `docker-compose up --build -d`
 - Create super user: `docker-compose exec web python manage.py createsuperuser`
-- Scrape some contracts: `docker-compose exec web python manage.py scrape_contracts --limit 100`
 - open http://localhost:8000
 
 And you should be ready to go!

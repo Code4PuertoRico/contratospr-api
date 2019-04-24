@@ -6,9 +6,16 @@ postgres_ready(){
 python manage.py shell << END
 import sys
 import psycopg2
-from django.db import connections
+import dj_database_url
 try:
-    connections['default'].cursor()
+    parsed = dj_database_url.parse("${DATABASE_URL}")
+    psycopg2.connect(
+        dbname=parsed["NAME"],
+        user=parsed["USER"],
+        password=parsed["PASSWORD"],
+        host=parsed["HOST"],
+        port=parsed["PORT"],
+    )
 except psycopg2.OperationalError:
     sys.exit(-1)
 sys.exit(0)
@@ -35,6 +42,11 @@ case "$1" in
     ;;
 
   "run-tests")
+    until postgres_ready; do
+      >&2 echo "==> Waiting for Postgres..."
+      sleep 1
+    done
+
     python runtests.py
     ;;
 

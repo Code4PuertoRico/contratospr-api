@@ -94,5 +94,7 @@ media
 node_modules
 
 .vscode/
-*.dump
 .idea/
+
+docker/postgres/backup.dump
+data/contracts.jsonl.gz

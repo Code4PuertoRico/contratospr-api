@@ -30,10 +30,7 @@ def strip_whitespace(value):
     return value.strip() if value else None
 
 
-@app.task
-def expand_contract(contract):
-    logger.info("Expanding contract", contract=contract["ContractNumber"])
-
+def normalize_contract(contract):
     result = {
         "entity_id": contract["EntityId"],
         "entity_name": strip_whitespace(contract["EntityName"]),
@@ -60,16 +57,33 @@ def expand_contract(contract):
             "document_url"
         ] = f"{BASE_CONTRACT_URL}/downloaddocument?documentid={document_id}"
 
-    contractors = get_contractors(result["contract_id"])
+    return result
+
+
+def normalize_contractors(contractors):
+    results = []
 
     for contractor in contractors:
-        result["contractors"].append(
+        results.append(
             {
                 "contractor_id": contractor["ContractorId"],
                 "entity_id": contractor["EntityId"],
                 "name": contractor["Name"],
             }
         )
+
+    return results
+
+
+@app.task
+def expand_contract(contract):
+    logger.info("Expanding contract", contract=contract["ContractNumber"])
+
+    result = normalize_contract(contract)
+
+    contractors = get_contractors(result["contract_id"])
+
+    result["contractors"] = normalize_contractors(contractors)
 
     if result["has_amendments"]:
         amendments = get_amendments(result["contract_number"], result["entity_id"])
