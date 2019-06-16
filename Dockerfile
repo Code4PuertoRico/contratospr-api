@@ -26,6 +26,9 @@ ARG PIPENV_ARGS
 ENV LANG en_US.utf8
 ENV PYTHONUNBUFFERED 1
 
+# Add app user
+RUN adduser --disabled-login app
+
 RUN pip install pipenv==2018.11.26
 
 WORKDIR /app/
@@ -40,5 +43,4 @@ RUN pipenv install --deploy --system $PIPENV_ARGS && \
 # Bundle app source
 COPY . /app/
 
-RUN adduser --disabled-login app
 USER app

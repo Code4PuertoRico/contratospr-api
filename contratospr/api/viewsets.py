@@ -1,5 +1,8 @@
 from django.db.models import Count, Sum
+from django.db.models.functions import TruncMonth
 from rest_framework import filters, mixins, viewsets
+from rest_framework.decorators import action
+from rest_framework.response import Response
 
 from ..contracts.models import (
     Contract,
@@ -9,6 +12,7 @@ from ..contracts.models import (
     Service,
     ServiceGroup,
 )
+from ..contracts.utils import get_fiscal_year_range
 from .filters import (
     ContractFilter,
     ContractorFilter,
@@ -68,6 +72,30 @@ class ContractViewSet(CachedReadOnlyModelViewSet):
     ]
     ordering = ["-date_of_grant"]
     lookup_field = "slug"
+
+    @action(detail=False)
+    def spending_over_time(self, request):
+        fiscal_year = request.query_params.get("fiscal_year")
+
+        queryset = self.filter_queryset(self.get_queryset())
+
+        if fiscal_year:
+            start_date, end_date = get_fiscal_year_range(int(fiscal_year))
+            queryset = queryset.filter(
+                date_of_grant__gte=start_date, date_of_grant__lte=end_date
+            )
+
+        queryset = (
+            # TODO: should amendments be excluded?
+            queryset.filter(parent=None)
+            .annotate(month=TruncMonth("date_of_grant"))
+            .values("month")
+            .annotate(total=Sum("amount_to_pay"), count=Count("id"))
+            .values("month", "total", "count")
+            .order_by("month")
+        )
+
+        return Response(queryset)
 
 
 class ContractorViewSet(CachedReadOnlyModelViewSet):
