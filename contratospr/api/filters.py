@@ -66,10 +66,8 @@ class ContractFilter(django_filters.FilterSet):
         help_text="Filter by Entity ID", queryset=Entity.objects.all()
     )
 
-    contractor = django_filters.ModelMultipleChoiceFilter(
-        field_name="contractors",
-        help_text="Filter by Contractor ID",
-        queryset=Contractor.objects.all(),
+    contractor = django_filters.CharFilter(
+        help_text="Filter by Contractor", method="filter_contractors"
     )
 
     fiscal_year = django_filters.TypedChoiceFilter(
@@ -98,6 +96,13 @@ class ContractFilter(django_filters.FilterSet):
         return queryset.filter(
             effective_date_from__gte=start_date, effective_date_from__lte=end_date
         )
+
+    def filter_contractors(self, queryset, name, value):
+        if not value:
+            return queryset
+
+        contractors = Contractor.objects.filter(name__icontains=value).only("id")
+        return queryset.filter(contractors__in=contractors)
 
 
 class ContractorFilter(django_filters.FilterSet):
