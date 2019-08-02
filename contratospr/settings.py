@@ -203,6 +203,8 @@ class Development(Common):
 
     INTERNAL_IPS = ["127.0.0.1"]
 
+    CACHES = {"default": {"BACKEND": "django.core.cache.backends.dummy.DummyCache"}}
+
 
 class Production(Common):
     """
