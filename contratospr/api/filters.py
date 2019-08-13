@@ -1,15 +1,11 @@
 import coreapi
 import coreschema
 from django.contrib.postgres.search import SearchQuery
-from django.db.models import Count, Q, Sum
 from django.template import loader
 from django_filters import rest_framework as django_filters
 from rest_framework.filters import BaseFilterBackend
 
 from ..contracts.models import Contract, Contractor, Entity, Service, ServiceGroup
-from ..contracts.utils import get_fiscal_year_range
-
-FISCAL_YEAR_CHOICES = [(2016, "2016"), (2017, "2017"), (2018, "2018"), (2019, "2019")]
 
 
 class SimpleDjangoFilterBackend(django_filters.DjangoFilterBackend):
@@ -52,57 +48,67 @@ class SearchQueryFilter(BaseFilterBackend):
 class ContractFilter(django_filters.FilterSet):
     number = django_filters.CharFilter(help_text="Filter by Contract number")
 
-    service = django_filters.ModelChoiceFilter(
+    service_id = django_filters.ModelChoiceFilter(
         help_text="Filter by Service ID", queryset=Service.objects.all()
     )
 
-    service_group = django_filters.ModelChoiceFilter(
+    service_group_id = django_filters.ModelChoiceFilter(
         field_name="service__group",
         help_text="Filter by Service Group ID",
         queryset=ServiceGroup.objects.all(),
     )
 
-    entity = django_filters.ModelMultipleChoiceFilter(
+    entity_id = django_filters.ModelMultipleChoiceFilter(
         help_text="Filter by Entity ID", queryset=Entity.objects.all()
     )
 
-    contractor = django_filters.CharFilter(
-        help_text="Filter by Contractor", method="filter_contractors"
+    contractor_name = django_filters.CharFilter(
+        help_text="Filter by Contractor name", method="filter_contractors_by_name"
     )
 
-    fiscal_year = django_filters.TypedChoiceFilter(
-        choices=FISCAL_YEAR_CHOICES, coerce=int, method="filter_fiscal_year"
+    contractor_id = django_filters.ModelMultipleChoiceFilter(
+        help_text="Filter by Contractor ID",
+        queryset=Contractor.objects.all().only("id"),
+        method="filter_contractors_by_id",
     )
 
     date_of_grant = django_filters.DateFromToRangeFilter()
+
+    exclude_amendments = django_filters.BooleanFilter(
+        method="filter_exclude_amendments"
+    )
 
     class Meta:
         model = Contract
         fields = [
             "number",
-            "service",
-            "service_group",
-            "entity",
-            "contractor",
-            "fiscal_year",
+            "service_id",
+            "service_group_id",
+            "entity_id",
+            "contractor_name",
+            "contractor_id",
             "date_of_grant",
+            "has_amendments",
         ]
 
-    def filter_fiscal_year(self, queryset, name, value):
-        if not value:
-            return queryset
-
-        start_date, end_date = get_fiscal_year_range(value)
-        return queryset.filter(
-            effective_date_from__gte=start_date, effective_date_from__lte=end_date
-        )
-
-    def filter_contractors(self, queryset, name, value):
+    def filter_contractors_by_name(self, queryset, name, value):
         if not value:
             return queryset
 
         contractors = Contractor.objects.filter(name__icontains=value).only("id")
         return queryset.filter(contractors__in=contractors)
+
+    def filter_contractors_by_id(self, queryset, name, value):
+        if not value:
+            return queryset
+
+        return queryset.filter(contractors__in=value)
+
+    def filter_exclude_amendments(self, queryset, name, value):
+        if value is True:
+            return queryset.filter(parent__isnull=True)
+
+        return queryset
 
 
 class ContractorFilter(django_filters.FilterSet):
@@ -112,19 +118,15 @@ class ContractorFilter(django_filters.FilterSet):
         method="filter_contractors",
     )
 
-    entity = django_filters.ModelMultipleChoiceFilter(
+    entity_id = django_filters.ModelMultipleChoiceFilter(
         help_text="Filter by Entity ID",
         queryset=Entity.objects.all(),
         method="filter_entities",
     )
 
-    fiscal_year = django_filters.TypedChoiceFilter(
-        choices=FISCAL_YEAR_CHOICES, coerce=int, method="filter_fiscal_year"
-    )
-
     class Meta:
         model = Contractor
-        fields = ["id", "entity", "fiscal_year"]
+        fields = ["id", "entity_id"]
 
     def filter_contractors(self, queryset, name, value):
         if not value:
@@ -138,20 +140,6 @@ class ContractorFilter(django_filters.FilterSet):
             return queryset
         return queryset.filter(contract__entity__in=value).distinct()
 
-    def filter_fiscal_year(self, queryset, name, value):
-        # TODO This should probably be done in .qs
-        if not value:
-            return queryset
-
-        start_date, end_date = get_fiscal_year_range(value)
-        fiscal_year_filter = Q(contract__effective_date_from__gte=start_date) & Q(
-            contract__effective_date_from__lte=end_date
-        )
-        return queryset.annotate(
-            contracts_total=Sum("contract__amount_to_pay", filter=fiscal_year_filter),
-            contracts_count=Count("contract", filter=fiscal_year_filter),
-        )
-
 
 class EntityFilter(django_filters.FilterSet):
     id = django_filters.ModelMultipleChoiceFilter(
@@ -160,19 +148,15 @@ class EntityFilter(django_filters.FilterSet):
         method="filter_entities",
     )
 
-    contractor = django_filters.ModelMultipleChoiceFilter(
+    contractor_id = django_filters.ModelMultipleChoiceFilter(
         help_text="Filter by Contractor ID",
         queryset=Contractor.objects.all(),
-        method="filter_contractor",
-    )
-
-    fiscal_year = django_filters.TypedChoiceFilter(
-        choices=FISCAL_YEAR_CHOICES, coerce=int, method="filter_fiscal_year"
+        method="filter_contractors_by_id",
     )
 
     class Meta:
         model = Entity
-        fields = ["id", "contractor", "fiscal_year"]
+        fields = ["id", "contractor_id"]
 
     def filter_entities(self, queryset, name, value):
         if not value:
@@ -181,27 +165,11 @@ class EntityFilter(django_filters.FilterSet):
         entity_ids = [entity.id for entity in value]
         return queryset.filter(pk__in=entity_ids)
 
-    def filter_contractor(self, queryset, name, value):
+    def filter_contractors_by_id(self, queryset, name, value):
         if not value:
             return queryset
 
-        return queryset.filter(
-            contract__contractors__in=value, contract__parent=None
-        ).distinct()
-
-    def filter_fiscal_year(self, queryset, name, value):
-        # TODO This should probably be done in .qs
-        if not value:
-            return queryset
-
-        start_date, end_date = get_fiscal_year_range(value)
-        fiscal_year_filter = Q(contract__effective_date_from__gte=start_date) & Q(
-            contract__effective_date_from__lte=end_date
-        )
-        return queryset.annotate(
-            contracts_total=Sum("contract__amount_to_pay", filter=fiscal_year_filter),
-            contracts_count=Count("contract", filter=fiscal_year_filter),
-        )
+        return queryset.filter(contract__contractors__in=value).distinct()
 
 
 class ServiceFilter(django_filters.FilterSet):
@@ -211,67 +179,42 @@ class ServiceFilter(django_filters.FilterSet):
         method="filter_services",
     )
 
-    entity = django_filters.ModelMultipleChoiceFilter(
+    entity_id = django_filters.ModelMultipleChoiceFilter(
         help_text="Filter by Entity ID",
         queryset=Entity.objects.all(),
-        method="filter_entity",
+        method="filter_entity_by_id",
     )
 
-    contractor = django_filters.ModelMultipleChoiceFilter(
+    contractor_id = django_filters.ModelMultipleChoiceFilter(
         field_name="contractor",
         help_text="Filter by Contractor ID",
         queryset=Contractor.objects.all(),
-        method="filter_contractor",
-    )
-
-    fiscal_year = django_filters.TypedChoiceFilter(
-        choices=FISCAL_YEAR_CHOICES, coerce=int, method="filter_fiscal_year"
+        method="filter_contractors_by_id",
     )
 
     class Meta:
         model = Service
-        fields = ["id", "entity", "group", "contractor", "fiscal_year"]
+        fields = ["id", "entity_id", "group_id", "contractor_id"]
 
     def filter_services(self, queryset, name, value):
         if not value:
             return queryset
 
-        entity_ids = [entity.id for entity in value]
-        return queryset.filter(pk__in=entity_ids)
+        service_ids = [service.id for service in value]
+        return queryset.filter(pk__in=service_ids)
 
-    def filter_entity(self, queryset, name, value):
+    def filter_entity_by_id(self, queryset, name, value):
         if not value:
             return queryset
 
-        contracts = Contract.objects.filter(entity__in=value, parent=None)
-        fiscal_year = self.form.cleaned_data.get("fiscal_year")
+        contracts = Contract.objects.filter(entity__in=value).only("id")
 
-        if fiscal_year:
-            start_date, end_date = get_fiscal_year_range(fiscal_year)
-            contracts = contracts.filter(
-                effective_date_from__gte=start_date, effective_date_from__lte=end_date
-            )
+        return queryset.filter(contract__in=contracts).distinct()
 
-        return queryset.filter(
-            pk__in=[contract.entity_id for contract in contracts]
-        ).distinct()
-
-    def filter_contractor(self, queryset, name, value):
+    def filter_contractors_by_id(self, queryset, name, value):
         if not value:
             return queryset
 
-        contracts = Contract.objects.filter(contractors__in=value, parent=None)
-        fiscal_year = self.form.cleaned_data.get("fiscal_year")
+        contracts = Contract.objects.filter(contractors__in=value).only("id")
 
-        if fiscal_year:
-            start_date, end_date = get_fiscal_year_range(fiscal_year)
-            contracts = contracts.filter(
-                effective_date_from__gte=start_date, effective_date_from__lte=end_date
-            )
-
-        return queryset.filter(
-            pk__in=[contract.service_id for contract in contracts]
-        ).distinct()
-
-    def filter_fiscal_year(self, queryset, name, value):
-        return queryset
+        return queryset.filter(contract__in=contracts).distinct()

@@ -30,6 +30,8 @@ class ContractorSerializer(serializers.ModelSerializer):
     )
     contracts_count = serializers.IntegerField(allow_null=True)
 
+    entities = serializers.SerializerMethodField()
+
     class Meta:
         model = Contractor
         fields = [
@@ -40,7 +42,13 @@ class ContractorSerializer(serializers.ModelSerializer):
             "entity_id",
             "contracts_count",
             "contracts_total",
+            "entities",
         ]
+
+    def get_entities(self, obj):
+        contracts = obj.contract_set.all().only("id")
+        entities = Entity.objects.filter(contract__in=contracts).distinct()
+        return EntitySerializer(entities, many=True).data
 
 
 class DocumentSerializer(serializers.ModelSerializer):
@@ -58,25 +66,17 @@ class DocumentSerializer(serializers.ModelSerializer):
 
 
 class ServiceGroupSerializer(serializers.ModelSerializer):
-    contracts_total = serializers.DecimalField(
-        max_digits=20, decimal_places=2, allow_null=True
-    )
-
     class Meta:
         model = ServiceGroup
-        fields = ["id", "name", "contracts_total", "created_at", "modified_at"]
+        fields = ["id", "slug", "name", "created_at", "modified_at"]
 
 
 class ServiceSerializer(serializers.ModelSerializer):
     group = ServiceGroupSerializer()
 
-    contracts_total = serializers.DecimalField(
-        max_digits=20, decimal_places=2, allow_null=True
-    )
-
     class Meta:
         model = Service
-        fields = ["id", "name", "group", "contracts_total", "created_at", "modified_at"]
+        fields = ["id", "slug", "name", "group", "created_at", "modified_at"]
 
 
 class EntitySerializer(serializers.ModelSerializer):
@@ -92,8 +92,8 @@ class EntitySerializer(serializers.ModelSerializer):
             "slug",
             "name",
             "source_id",
-            "contracts_count",
             "contracts_total",
+            "contracts_count",
             "created_at",
             "modified_at",
         ]
