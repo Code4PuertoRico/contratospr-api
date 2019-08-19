@@ -26,7 +26,7 @@ def index_contract(obj):
     return contract.save(update_fields=["search_vector"])
 
 
-def search_contracts(query, service_id, service_group_id):
+def search_contracts(query, service_id, service_group_id, entity_id, entity_source_id):
     filter_kwargs = {}
 
     if query:
@@ -37,6 +37,12 @@ def search_contracts(query, service_id, service_group_id):
 
     if service_group_id:
         filter_kwargs["service__group_id"] = service_group_id
+
+    if entity_id:
+        filter_kwargs["entity__id"] = entity_id
+
+    if entity_source_id:
+        filter_kwargs["entity__source_id"] = entity_source_id
 
     if not filter_kwargs:
         return []
