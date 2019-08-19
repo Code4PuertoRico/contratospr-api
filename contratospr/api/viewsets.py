@@ -111,7 +111,7 @@ class ContractorViewSet(CachedReadOnlyModelViewSet):
         SimpleDjangoFilterBackend,
     ]
     search_fields = ["name"]
-    ordering_fields = ["name"]
+    ordering_fields = ["name", "contracts_count", "contracts_total"]
     ordering = ["name"]
     lookup_field = "slug"
 
@@ -150,7 +150,7 @@ class ServiceGroupViewSet(CachedReadOnlyModelViewSet):
 
 
 class ServiceViewSet(CachedReadOnlyModelViewSet):
-    queryset = Service.objects.select_related("group").all()
+    queryset = Service.objects.select_related("group")
     serializer_class = ServiceSerializer
     filterset_class = ServiceFilter
     filter_backends = [
@@ -159,6 +159,6 @@ class ServiceViewSet(CachedReadOnlyModelViewSet):
         SimpleDjangoFilterBackend,
     ]
     search_fields = ["name"]
-    ordering_fields = ["name"]
+    ordering_fields = ["name", "contracts_count", "contracts_total"]
     ordering = ["name"]
     lookup_field = "slug"

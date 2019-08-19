@@ -167,6 +167,7 @@ class Common(Configuration):
         "DEFAULT_PAGINATION_CLASS": "contratospr.api.pagination.PageNumberPagination",
         "DEFAULT_THROTTLE_CLASSES": ("rest_framework.throttling.AnonRateThrottle",),
         "DEFAULT_THROTTLE_RATES": {"anon": "5000/hour"},
+        "COERCE_DECIMAL_TO_STRING": False,
     }
 
     API_CACHE_TIMEOUT = values.IntegerValue(60 * 60 * 24, environ_prefix=None)
