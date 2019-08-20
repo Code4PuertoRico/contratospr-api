@@ -1,6 +1,7 @@
 import coreapi
 import coreschema
 from django.contrib.postgres.search import SearchQuery
+from django.db.models import Count, Q, Sum
 from django.template import loader
 from django_filters import rest_framework as django_filters
 from rest_framework.filters import BaseFilterBackend
@@ -138,7 +139,16 @@ class ContractorFilter(django_filters.FilterSet):
     def filter_entities(self, queryset, name, value):
         if not value:
             return queryset
-        return queryset.filter(contract__entity__in=value).distinct()
+        return (
+            queryset.filter(contract__entity__in=value)
+            .distinct()
+            .annotate(
+                contracts_total=Sum(
+                    "contract__amount_to_pay", filter=Q(contract__entity__in=value)
+                ),
+                contracts_count=Count("contract", filter=Q(contract__entity__in=value)),
+            )
+        )
 
 
 class EntityFilter(django_filters.FilterSet):
@@ -209,7 +219,16 @@ class ServiceFilter(django_filters.FilterSet):
 
         contracts = Contract.objects.filter(entity__in=value).only("id")
 
-        return queryset.filter(contract__in=contracts).distinct()
+        return (
+            queryset.filter(contract__in=contracts)
+            .distinct()
+            .annotate(
+                contracts_total=Sum(
+                    "contract__amount_to_pay", filter=Q(contract__in=contracts)
+                ),
+                contracts_count=Count("contract", filter=Q(contract__in=contracts)),
+            )
+        )
 
     def filter_contractors_by_id(self, queryset, name, value):
         if not value:
@@ -217,4 +236,13 @@ class ServiceFilter(django_filters.FilterSet):
 
         contracts = Contract.objects.filter(contractors__in=value).only("id")
 
-        return queryset.filter(contract__in=contracts).distinct()
+        return (
+            queryset.filter(contract__in=contracts)
+            .distinct()
+            .annotate(
+                contracts_total=Sum(
+                    "contract__amount_to_pay", filter=Q(contract__in=contracts)
+                ),
+                contracts_count=Count("contract", filter=Q(contract__in=contracts)),
+            )
+        )
