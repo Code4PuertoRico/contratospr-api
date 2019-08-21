@@ -128,7 +128,8 @@ class HomePageView(CachedAPIViewMixin, APIView):
         start_date, end_date = get_fiscal_year_range(fiscal_year)
 
         contracts = (
-            Contract.objects.select_related(
+            Contract.objects.without_amendments()
+            .select_related(
                 "document",
                 "entity",
                 "service",
@@ -142,9 +143,7 @@ class HomePageView(CachedAPIViewMixin, APIView):
                 "contractors", "parent__contractors", "amendments", "parent__amendments"
             )
             .filter(
-                parent=None,
-                effective_date_from__gte=start_date,
-                effective_date_from__lte=end_date,
+                effective_date_from__gte=start_date, effective_date_from__lte=end_date
             )
         )
 

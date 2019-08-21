@@ -86,8 +86,7 @@ class ContractViewSet(CachedReadOnlyModelViewSet):
             )
 
         queryset = (
-            # TODO: should amendments be excluded?
-            queryset.filter(parent=None)
+            queryset.without_amendments()
             .annotate(month=TruncMonth("date_of_grant"))
             .values("month")
             .annotate(total=Sum("amount_to_pay"), count=Count("id"))
