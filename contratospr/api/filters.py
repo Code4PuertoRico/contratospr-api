@@ -163,10 +163,15 @@ class EntityFilter(django_filters.FilterSet):
         queryset=Contractor.objects.all(),
         method="filter_contractors_by_id",
     )
+    # source_id = django_filters.NumberFilter()
+    source_id = django_filters.ModelMultipleChoiceFilter(
+        queryset=Entity.objects.all().only("source_id"),
+        method="filter_entities_source_id",
+    )
 
     class Meta:
         model = Entity
-        fields = ["id", "contractor_id"]
+        fields = ["id", "contractor_id", "source_id"]
 
     def filter_entities(self, queryset, name, value):
         if not value:
@@ -180,6 +185,13 @@ class EntityFilter(django_filters.FilterSet):
             return queryset
 
         return queryset.filter(contract__contractors__in=value).distinct()
+
+    def filter_entities_source_id(self, queryset, name, value):
+        if not value:
+            return queryset
+
+        source_ids = [entity.source_id for entity in value]
+        return queryset.filter(source_id__in=source_ids)
 
 
 class ServiceFilter(django_filters.FilterSet):
