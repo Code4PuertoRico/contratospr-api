@@ -144,9 +144,13 @@ class ContractorFilter(django_filters.FilterSet):
             .distinct()
             .annotate(
                 contracts_total=Sum(
-                    "contract__amount_to_pay", filter=Q(contract__entity__in=value)
+                    "contract__amount_to_pay",
+                    filter=Q(contract__parent=None, contract__entity__in=value),
                 ),
-                contracts_count=Count("contract", filter=Q(contract__entity__in=value)),
+                contracts_count=Count(
+                    "contract",
+                    filter=Q(contract__parent=None, contract__entity__in=value),
+                ),
             )
         )
 
@@ -236,9 +240,12 @@ class ServiceFilter(django_filters.FilterSet):
             .distinct()
             .annotate(
                 contracts_total=Sum(
-                    "contract__amount_to_pay", filter=Q(contract__in=contracts)
+                    "contract__amount_to_pay",
+                    filter=Q(contract__parent=None, contract__in=contracts),
                 ),
-                contracts_count=Count("contract", filter=Q(contract__in=contracts)),
+                contracts_count=Count(
+                    "contract", filter=Q(contract__parent=None, contract__in=contracts)
+                ),
             )
         )
 
@@ -253,8 +260,11 @@ class ServiceFilter(django_filters.FilterSet):
             .distinct()
             .annotate(
                 contracts_total=Sum(
-                    "contract__amount_to_pay", filter=Q(contract__in=contracts)
+                    "contract__amount_to_pay",
+                    filter=Q(contract__parent=None, contract__in=contracts),
                 ),
-                contracts_count=Count("contract", filter=Q(contract__in=contracts)),
+                contracts_count=Count(
+                    "contract", filter=Q(contract__parent=None, contract__in=contracts)
+                ),
             )
         )
