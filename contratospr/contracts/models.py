@@ -19,6 +19,7 @@ from google.protobuf.json_format import MessageToDict
 from ..utils.filepreviews import FilePreviews
 from ..utils.models import BaseModel
 from ..utils.pdftotext import pdf_to_text
+from .queryset import ContractQuerySet
 
 if settings.FILEPREVIEWS_API_KEY and settings.FILEPREVIEWS_API_SECRET:
     filepreviews = FilePreviews(
@@ -256,6 +257,8 @@ class Contract(BaseModel):
     )
 
     search_vector = SearchVectorField(null=True)
+
+    objects = ContractQuerySet.as_manager()
 
     class Meta:
         indexes = [GinIndex(fields=["search_vector"])]
