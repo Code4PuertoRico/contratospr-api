@@ -33,7 +33,7 @@ pygments = "==2.4.2"
 markdown = "==3.1.1"
 django-cors-headers = "==3.1.0"
 django-redis = "==4.10.0"
-celery = {extras = ["redis"],version = "==4.2.1"}
+celery = {extras = ["redis"],version = "==4.3.0"}
 structlog = "==19.1.0"
 
 [requires]
