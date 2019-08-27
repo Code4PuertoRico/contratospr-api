@@ -221,18 +221,17 @@ class ServiceFilter(django_filters.FilterSet):
         if not value:
             return queryset
 
-        contracts = Contract.objects.filter(entity__in=value).only("id")
-
         return (
-            queryset.filter(contract__in=contracts)
+            queryset.filter(contract__entity_id__in=value)
             .distinct()
             .annotate(
                 contracts_total=Sum(
                     "contract__amount_to_pay",
-                    filter=Q(contract__parent=None, contract__in=contracts),
+                    filter=Q(contract__parent=None, contract__entity_id__in=value),
                 ),
                 contracts_count=Count(
-                    "contract", filter=Q(contract__parent=None, contract__in=contracts)
+                    "contract",
+                    filter=Q(contract__parent=None, contract__entity_id__in=value),
                 ),
             )
         )
