@@ -1,4 +1,4 @@
-from django.db.models import Avg, Count, Sum
+from django.db.models import Avg, Count, Q, Sum
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -90,16 +90,42 @@ def get_service_trend(fiscal_year):
     services = (
         Service.objects.filter(contract__in=contracts)
         .select_related("group")
-        .annotate(contracts_total=Sum("contract__amount_to_pay"))
+        .annotate(
+            contracts_total=Sum(
+                "contract__amount_to_pay",
+                filter=Q(contract__parent=None, contract__in=contracts),
+            ),
+            contracts_count=Count(
+                "contract", filter=Q(contract__parent=None, contract__in=contracts)
+            ),
+        )
+        .filter(contracts_total__gt=0, contracts_count__gt=0)
+        .order_by("-contracts_total")
     )
 
-    service_groups = ServiceGroup.objects.filter(
-        service__contract__in=contracts
-    ).annotate(contracts_total=Sum("service__contract__amount_to_pay"))
+    service_groups = (
+        ServiceGroup.objects.filter(service__contract__in=contracts)
+        .annotate(
+            contracts_total=Sum(
+                "service__contract__amount_to_pay",
+                filter=Q(
+                    service__contract__parent=None, service__contract__in=contracts
+                ),
+            ),
+            contracts_count=Count(
+                "service__contract",
+                filter=Q(
+                    service__contract__parent=None, service__contract__in=contracts
+                ),
+            ),
+        )
+        .filter(contracts_total__gt=0, contracts_count__gt=0)
+        .order_by("-contracts_total")
+    )
 
-    service_totals = ServiceSerializer(services, many=True).data
+    service_totals = ServiceSerializer(services[:20], many=True).data
 
-    service_group_totals = ServiceGroupSerializer(service_groups, many=True).data
+    service_group_totals = ServiceGroupSerializer(service_groups[:20], many=True).data
 
     return {
         "fiscal_year": fiscal_year,

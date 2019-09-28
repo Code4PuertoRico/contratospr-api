@@ -66,9 +66,23 @@ class DocumentSerializer(serializers.ModelSerializer):
 
 
 class ServiceGroupSerializer(serializers.ModelSerializer):
+    contracts_total = serializers.DecimalField(
+        max_digits=20, decimal_places=2, allow_null=True
+    )
+
+    contracts_count = serializers.IntegerField(allow_null=True)
+
     class Meta:
         model = ServiceGroup
-        fields = ["id", "slug", "name", "created_at", "modified_at"]
+        fields = [
+            "id",
+            "slug",
+            "name",
+            "contracts_count",
+            "contracts_total",
+            "created_at",
+            "modified_at",
+        ]
 
 
 class ServiceSerializer(serializers.ModelSerializer):
