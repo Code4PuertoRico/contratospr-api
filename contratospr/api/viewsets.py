@@ -17,6 +17,7 @@ from .filters import (
     ContractFilter,
     ContractorFilter,
     EntityFilter,
+    NullsLastOrderingFilter,
     SearchQueryFilter,
     ServiceFilter,
     SimpleDjangoFilterBackend,
@@ -59,7 +60,7 @@ class ContractViewSet(CachedReadOnlyModelViewSet):
     filter_backends = [
         SearchQueryFilter,
         SimpleDjangoFilterBackend,
-        filters.OrderingFilter,
+        NullsLastOrderingFilter,
     ]
     filterset_class = ContractFilter
     ordering_fields = [
@@ -106,7 +107,7 @@ class ContractorViewSet(CachedReadOnlyModelViewSet):
     serializer_class = ContractorSerializer
     filterset_class = ContractorFilter
     filter_backends = [
-        filters.OrderingFilter,
+        NullsLastOrderingFilter,
         filters.SearchFilter,
         SimpleDjangoFilterBackend,
     ]
@@ -131,7 +132,7 @@ class EntityViewSet(CachedReadOnlyModelViewSet):
     serializer_class = EntitySerializer
     filterset_class = EntityFilter
     filter_backends = [
-        filters.OrderingFilter,
+        NullsLastOrderingFilter,
         filters.SearchFilter,
         SimpleDjangoFilterBackend,
     ]
@@ -145,7 +146,7 @@ class ServiceGroupViewSet(CachedReadOnlyModelViewSet):
     schema = CustomAutoSchema(tags=["service groups"])
     queryset = ServiceGroup.objects.all()
     serializer_class = ServiceGroupSerializer
-    filter_backends = [filters.OrderingFilter, filters.SearchFilter]
+    filter_backends = [NullsLastOrderingFilter, filters.SearchFilter]
     search_fields = ["name"]
     ordering_fields = ["name"]
     ordering = ["name"]
@@ -158,7 +159,7 @@ class ServiceViewSet(CachedReadOnlyModelViewSet):
     serializer_class = ServiceSerializer
     filterset_class = ServiceFilter
     filter_backends = [
-        filters.OrderingFilter,
+        NullsLastOrderingFilter,
         filters.SearchFilter,
         SimpleDjangoFilterBackend,
     ]
