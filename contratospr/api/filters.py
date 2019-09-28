@@ -57,7 +57,7 @@ class NullsLastOrderingFilter(OrderingFilter):
                 if o[0] == "-":
                     f_ordering.append(F(o[1:]).desc(nulls_last=True))
                 else:
-                    f_ordering.append(F(o[1:]).asc(nulls_last=True))
+                    f_ordering.append(F(o).asc(nulls_last=True))
 
             return queryset.order_by(*f_ordering)
 
