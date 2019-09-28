@@ -129,7 +129,7 @@ class SimpleContractSerializer(serializers.ModelSerializer):
         ]
 
 
-class ContractSerializer(serializers.ModelSerializer):
+class BaseContractSerializer(serializers.ModelSerializer):
     date_of_grant = serializers.DateTimeField(format="%Y-%m-%d")
     entity = EntitySerializer()
     service = ServiceSerializer()
@@ -163,8 +163,11 @@ class ContractSerializer(serializers.ModelSerializer):
             "modified_at",
         ]
 
-    def get_fields(self):
-        fields = super(ContractSerializer, self).get_fields()
-        fields["parent"] = ContractSerializer()
-        fields["amendments"] = SimpleContractSerializer(many=True)
-        return fields
+
+class ParentContractSerializer(BaseContractSerializer):
+    pass
+
+
+class ContractSerializer(BaseContractSerializer):
+    parent = ParentContractSerializer()
+    amendments = SimpleContractSerializer(many=True)

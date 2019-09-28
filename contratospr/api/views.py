@@ -115,6 +115,8 @@ def get_service_trend(fiscal_year):
 
 
 class HomePageView(CachedAPIViewMixin, APIView):
+    schema = None
+
     def get(self, request, format=None):
         serializer = HomeSerializer(data=request.GET)
 
@@ -210,6 +212,8 @@ class HomePageView(CachedAPIViewMixin, APIView):
 
 
 class TrendsGeneralView(CachedAPIViewMixin, APIView):
+    schema = None
+
     def get(self, request, format=None):
         current_fiscal_year = get_current_fiscal_year()
 
@@ -224,6 +228,8 @@ class TrendsGeneralView(CachedAPIViewMixin, APIView):
 
 
 class TrendsServicesView(CachedAPIViewMixin, APIView):
+    schema = None
+
     def get(self, request, format=None):
         current_fiscal_year = get_current_fiscal_year()
 

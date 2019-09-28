@@ -1,5 +1,3 @@
-import coreapi
-import coreschema
 from django.contrib.postgres.search import SearchQuery
 from django.db.models import Count, Q, Sum
 from django.template import loader
@@ -35,14 +33,15 @@ class SearchQueryFilter(BaseFilterBackend):
         template = loader.get_template(self.template)
         return template.render({"param": self.search_param, "term": search_term})
 
-    def get_schema_fields(self, view):
+    def get_schema_operation_parameters(self, view):
         return [
-            coreapi.Field(
-                name=self.search_param,
-                required=False,
-                location="query",
-                schema=coreschema.String(title="Search", description="A search term."),
-            )
+            {
+                "name": self.search_param,
+                "required": False,
+                "in": "query",
+                "description": "A search term.",
+                "schema": {"type": "st ring"},
+            }
         ]
 
 

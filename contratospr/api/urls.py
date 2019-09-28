@@ -1,6 +1,7 @@
 from django.urls import include, path
-from rest_framework.documentation import include_docs_urls
+from django.views.generic import TemplateView
 from rest_framework.routers import DefaultRouter
+from rest_framework.schemas import get_schema_view
 
 from .views import HomePageView, TrendsGeneralView, TrendsServicesView
 from .viewsets import (
@@ -29,5 +30,17 @@ urlpatterns = [
     path("v1/pages/home/", HomePageView.as_view()),
     path("v1/pages/trends/general/", TrendsGeneralView.as_view()),
     path("v1/pages/trends/services/", TrendsServicesView.as_view()),
-    path("v1/docs/", include_docs_urls(title="Contratos de Puerto Rico")),
+    path(
+        "v1/docs/schema.json",
+        get_schema_view(title="Contratos de Puerto Rico"),
+        name="openapi-schema",
+    ),
+    path(
+        "v1/docs/",
+        TemplateView.as_view(
+            template_name="swagger-ui.html",
+            extra_context={"schema_url": "openapi-schema"},
+        ),
+        name="swagger-ui",
+    ),
 ]

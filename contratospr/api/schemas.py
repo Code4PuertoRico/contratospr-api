@@ -1,9 +1,15 @@
-from rest_framework.schemas import AutoSchema
+from rest_framework.schemas.openapi import AutoSchema
 
 
-class ContractSchema(AutoSchema):
-    def get_filter_fields(self, path, method):
-        if self.view.action != "list":
-            return []
+class CustomAutoSchema(AutoSchema):
+    def __init__(self, *args, **kwargs):
+        self.tags = kwargs.pop("tags")
+        return super().__init__(*args, **kwargs)
 
-        return super().get_filter_fields(path, method)
+    def get_operation(self, path, method):
+        operation = super().get_operation(path, method)
+
+        if self.tags:
+            operation["tags"] = self.tags
+
+        return operation
