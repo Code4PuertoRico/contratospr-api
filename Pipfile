@@ -8,7 +8,7 @@ black = "==19.3b0"
 isort = "==4.3.21"
 "flake8" = "==3.7.8"
 pre-commit = "==1.18.3"
-seed-isort-config = "==1.9.2"
+seed-isort-config = "==1.9.3"
 pytest-django = "==3.5.1"
 
 [packages]
