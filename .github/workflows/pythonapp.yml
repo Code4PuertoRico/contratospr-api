@@ -3,7 +3,7 @@ name: Build and test ContratosPR API
 on: [push]
 
 jobs:
-  build:
+  lint:
     runs-on: ubuntu-latest
 
     steps:
