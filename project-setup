@@ -1,0 +1,125 @@
+#! /bin/bash
+
+echo "Thanks for your interest in ContratosPR and it's API ❤️"
+echo "This script is meant to help you with the setup process for this project that is outlined " \
+    "here https://github.com/TheIndexingProject/contratospr-api/blob/master/CONTRIBUTING.md#project-setup. 👀"
+echo "If this doesn't help or is even more confussing for you please let use know " \
+    "by creating a new issue here https://github.com/TheIndexingProject/contratospr-api/issues/new/choose"
+
+if ! [ -x "$(command -v docker)" ] ; then
+    echo "🛑 We could not detect if you have Docker installed. " \
+        "We recommend you install both Docker for your system. 🛑"
+    echo "For information on how to do that please take a look at https://docs.docker.com/install/"
+
+    exit 1
+else
+    echo "Found Docker 🐳"
+fi
+
+if ! [ -x "$(command -v docker-compose)" ] ; then
+    echo "🛑 We could not detect if you have Docker Compose installed. " \
+        "We recommend you install Docker Compose for your system. 🛑"
+    echo "For information on how to do that please take a look at https://docs.docker.com/compose/install/"
+
+    exit 1
+else
+    echo "Found Docker Compose ✅"
+fi
+
+if ! [ -x "$(command -v python3.7)" ] || ! [ -x "$(command -v python3)" ]; then
+    if ! [ -x "$(command -v python)" ]; then
+        echo "🛑 We could not detect that you have Python installed. Please install Python 3.7.x. 🛑"
+        exit 1
+    else
+        python_version=`python -c 'import sys; version=sys.version_info[:3]; print("{0}.{1}".format(*version))'`
+
+        if [ $python_version != "3.7" ] ; then 
+            echo "Please install Python version 3.7.2 or greater"
+            exit 1
+        fi
+    fi
+fi
+
+echo "Found Python 3.7 🐍"
+
+if ! [ -x "$(command -v pipenv)" ]; then
+
+    read -p "You do not have pipenv installed. The default installation method will be Pip. Would you like to install it with [P]ip or [H]omebrew? " choice
+
+    if [ $choice == "h" ] || [ $choice == "H" ] ; then
+        if ! [ -x "$(command -v brew)" ] ; then
+            echo "🛑 We could not find Homebrew installed in your system. " \
+                "Please take a look on how to install it here: https://brew.sh/ 🛑"
+            exit 1
+        fi
+
+        echo "Found Homebre 🍺. Installing Pipenv."
+        brew install pipenv
+    else
+        echo "Installing using Pip"
+
+        if [ -x "$(command -v pip3.7)" ]; then
+            pip3.7 install pipenv
+        elif [ -x "$(command -v pip3)" ]; then
+            pip3 install pipenv
+        else
+            echo "🛑 We could not find pip installed in your system. 🛑"
+            exit 1
+        fi
+    fi
+fi
+
+pipenv install --dev
+
+pipenv run pre-commit install
+
+echo "Creating the .env file. Remember to change this file with your settings."
+if [ -f example.env ]; then
+    cp example.env .env
+else
+    echo "PYTHONUNBUFFERED=1" >> .env
+    echo "" >> .env
+    echo "DJANGO_SECRET_KEY=dont-tell-eve" >> .env
+    echo "DATABASE_URL=postgres://postgres:password@database/postgres" >> .env
+    echo "REDIS_URL=redis://redis:6379" >> .env
+    echo "FILEPREVIEWS_API_KEY=""" >> .env
+    echo "FILEPREVIEWS_API_SECRET=""" >> .env
+fi
+
+
+database_backup_dump="`dirname "$0"`/docker/postgres/backup.dump"
+
+if ! [ -f $database_backup_dump ] ; then
+    echo "We need to download our development database dump. This file is about 100MB. 😱"
+    read -p "Would you still want to download this? [Y/n] " choice
+
+    if [ $choice == "Y" ] || [ $choice == "y" ] ; then
+        curl -o $database_backup_dump https://s3.amazonaws.com/data.contratospr.com/2019-08-24/backup.dump
+    else
+        echo "The file will not be downloaded. If you change your mind you can download it here: " \
+            "https://s3.amazonaws.com/data.contratospr.com/2019-08-24/backup.dump"
+        echo "⚠️ Remember that if you run this project without this you will not have any test data. ⚠️"
+    fi
+fi
+
+echo "You're all set! When ever you're ready to run this project using Docker and docker-compose."
+read -p "Would you like to run these commands now? [Y/n] " choice
+
+if [ $choice == "Y" ] || [ $choice == "y" ] ; then
+    echo "Building Docker images. 🐳🐳🐳"
+    docker-compose up --build -d
+
+    echo "We also need to create a superuser account. You can do this yourself or we can do this now."
+    read -p "Do you want to create the superuser account now? [Y/n] " choice
+
+    if [ $choice == "Y" ] || [ $choice == "y" ] ; then
+        docker-compose run web python manage.py createsuperuser
+    else
+        echo "ℹ️ Remember that without this superuser you will not be able to access the Django Admin. ℹ️"
+        echo "ℹ️ To create this account you can run docker-compose exec web python manage.py createsuperuser ℹ️"
+    fi
+
+    echo "You can now visit http://localhost:8000 in the browser of your choice."
+fi
+
+echo "All done! 🦄"
