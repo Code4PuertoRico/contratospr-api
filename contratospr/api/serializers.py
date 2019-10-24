@@ -66,9 +66,23 @@ class DocumentSerializer(serializers.ModelSerializer):
 
 
 class ServiceGroupSerializer(serializers.ModelSerializer):
+    contracts_total = serializers.DecimalField(
+        max_digits=20, decimal_places=2, allow_null=True
+    )
+
+    contracts_count = serializers.IntegerField(allow_null=True)
+
     class Meta:
         model = ServiceGroup
-        fields = ["id", "slug", "name", "created_at", "modified_at"]
+        fields = [
+            "id",
+            "slug",
+            "name",
+            "contracts_count",
+            "contracts_total",
+            "created_at",
+            "modified_at",
+        ]
 
 
 class ServiceSerializer(serializers.ModelSerializer):
@@ -129,7 +143,7 @@ class SimpleContractSerializer(serializers.ModelSerializer):
         ]
 
 
-class ContractSerializer(serializers.ModelSerializer):
+class BaseContractSerializer(serializers.ModelSerializer):
     date_of_grant = serializers.DateTimeField(format="%Y-%m-%d")
     entity = EntitySerializer()
     service = ServiceSerializer()
@@ -163,8 +177,11 @@ class ContractSerializer(serializers.ModelSerializer):
             "modified_at",
         ]
 
-    def get_fields(self):
-        fields = super(ContractSerializer, self).get_fields()
-        fields["parent"] = ContractSerializer()
-        fields["amendments"] = SimpleContractSerializer(many=True)
-        return fields
+
+class ParentContractSerializer(BaseContractSerializer):
+    pass
+
+
+class ContractSerializer(BaseContractSerializer):
+    parent = ParentContractSerializer()
+    amendments = SimpleContractSerializer(many=True)
