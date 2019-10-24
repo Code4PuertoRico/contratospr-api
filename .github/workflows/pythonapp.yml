@@ -1,0 +1,40 @@
+name: Build and test ContratosPR API
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.7
+    - name: Install Pipenv
+      run: pip install pipenv
+    - name: Install dependencies
+      run: pipenv install --dev
+    - name: Run Black
+      run: pipenv run black --check .
+    - name: Run iSort
+      run: pipenv run isort -q --recursive --check-only
+    - name: Run Flake8
+      run: pipenv run flake8 -q
+
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v1
+      - name: Set up Python 3.7
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.7
+      - name: Install Pipenv
+        run: pip install pipenv
+      - name: Install dependencies
+        run: pipenv install --dev
+      - name: Test with pytest
+        run: pipenv run python runtests.py
