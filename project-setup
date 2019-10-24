@@ -113,7 +113,7 @@ if [ $choice == "Y" ] || [ $choice == "y" ] ; then
     read -p "Do you want to create the superuser account now? [Y/n] " choice
 
     if [ $choice == "Y" ] || [ $choice == "y" ] ; then
-        docker-compose run web python manage.py createsuperuser
+        docker-compose exec web python manage.py createsuperuser
     else
         echo "ℹ️ Remember that without this superuser you will not be able to access the Django Admin. ℹ️"
         echo "ℹ️ To create this account you can run docker-compose exec web python manage.py createsuperuser ℹ️"
