@@ -1,6 +1,6 @@
 # Tracking Contratos PR
 
-[![CircleCI](https://circleci.com/gh/TheIndexingProject/contratospr-api.svg?style=svg)](https://circleci.com/gh/TheIndexingProject/contratospr-api)
+![](https://github.com/theindexingproject/contratospr-api/workflows/Build%20and%20test%20ContratosPR%20API/badge.svg)
 
 Web application to gather, display and make searchable contracts from the ["Consulta del Registro de Contratos"](https://consultacontratos.ocpr.gov.pr/) to enable independent research and analysis.
 
