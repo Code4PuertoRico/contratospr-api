@@ -1,10 +1,8 @@
-import coreapi
-import coreschema
 from django.contrib.postgres.search import SearchQuery
-from django.db.models import Count, Q, Sum
+from django.db.models import Count, F, Q, Sum
 from django.template import loader
 from django_filters import rest_framework as django_filters
-from rest_framework.filters import BaseFilterBackend
+from rest_framework.filters import BaseFilterBackend, OrderingFilter
 
 from ..contracts.models import Contract, Contractor, Entity, Service, ServiceGroup
 
@@ -35,15 +33,35 @@ class SearchQueryFilter(BaseFilterBackend):
         template = loader.get_template(self.template)
         return template.render({"param": self.search_param, "term": search_term})
 
-    def get_schema_fields(self, view):
+    def get_schema_operation_parameters(self, view):
         return [
-            coreapi.Field(
-                name=self.search_param,
-                required=False,
-                location="query",
-                schema=coreschema.String(title="Search", description="A search term."),
-            )
+            {
+                "name": self.search_param,
+                "required": False,
+                "in": "query",
+                "description": "A search term.",
+                "schema": {"type": "st ring"},
+            }
         ]
+
+
+class NullsLastOrderingFilter(OrderingFilter):
+    def filter_queryset(self, request, queryset, view):
+        ordering = self.get_ordering(request, queryset, view)
+
+        if ordering:
+            f_ordering = []
+            for o in ordering:
+                if not o:
+                    continue
+                if o[0] == "-":
+                    f_ordering.append(F(o[1:]).desc(nulls_last=True))
+                else:
+                    f_ordering.append(F(o).asc(nulls_last=True))
+
+            return queryset.order_by(*f_ordering)
+
+        return queryset
 
 
 class ContractFilter(django_filters.FilterSet):

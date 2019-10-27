@@ -17,12 +17,13 @@ from .filters import (
     ContractFilter,
     ContractorFilter,
     EntityFilter,
+    NullsLastOrderingFilter,
     SearchQueryFilter,
     ServiceFilter,
     SimpleDjangoFilterBackend,
 )
 from .mixins import CachedAPIViewMixin
-from .schemas import ContractSchema
+from .schemas import CustomAutoSchema
 from .serializers import (
     ContractorSerializer,
     ContractSerializer,
@@ -38,7 +39,7 @@ class CachedReadOnlyModelViewSet(CachedAPIViewMixin, viewsets.ReadOnlyModelViewS
 
 
 class ContractViewSet(CachedReadOnlyModelViewSet):
-    schema = ContractSchema()
+    schema = CustomAutoSchema(tags=["contracts"])
     queryset = (
         Contract.objects.select_related(
             "document",
@@ -59,7 +60,7 @@ class ContractViewSet(CachedReadOnlyModelViewSet):
     filter_backends = [
         SearchQueryFilter,
         SimpleDjangoFilterBackend,
-        filters.OrderingFilter,
+        NullsLastOrderingFilter,
     ]
     filterset_class = ContractFilter
     ordering_fields = [
@@ -98,6 +99,7 @@ class ContractViewSet(CachedReadOnlyModelViewSet):
 
 
 class ContractorViewSet(CachedReadOnlyModelViewSet):
+    schema = CustomAutoSchema(tags=["contractors"])
     queryset = Contractor.objects.all().annotate(
         contracts_total=Sum("contract__amount_to_pay"),
         contracts_count=Count("contract"),
@@ -105,7 +107,7 @@ class ContractorViewSet(CachedReadOnlyModelViewSet):
     serializer_class = ContractorSerializer
     filterset_class = ContractorFilter
     filter_backends = [
-        filters.OrderingFilter,
+        NullsLastOrderingFilter,
         filters.SearchFilter,
         SimpleDjangoFilterBackend,
     ]
@@ -116,11 +118,13 @@ class ContractorViewSet(CachedReadOnlyModelViewSet):
 
 
 class DocumentViewSet(mixins.RetrieveModelMixin, viewsets.GenericViewSet):
+    schema = CustomAutoSchema(tags=["documents"])
     queryset = Document.objects.all()
     serializer_class = DocumentSerializer
 
 
 class EntityViewSet(CachedReadOnlyModelViewSet):
+    schema = CustomAutoSchema(tags=["entities"])
     queryset = Entity.objects.all().annotate(
         contracts_total=Sum("contract__amount_to_pay"),
         contracts_count=Count("contract"),
@@ -128,7 +132,7 @@ class EntityViewSet(CachedReadOnlyModelViewSet):
     serializer_class = EntitySerializer
     filterset_class = EntityFilter
     filter_backends = [
-        filters.OrderingFilter,
+        NullsLastOrderingFilter,
         filters.SearchFilter,
         SimpleDjangoFilterBackend,
     ]
@@ -139,9 +143,10 @@ class EntityViewSet(CachedReadOnlyModelViewSet):
 
 
 class ServiceGroupViewSet(CachedReadOnlyModelViewSet):
+    schema = CustomAutoSchema(tags=["service groups"])
     queryset = ServiceGroup.objects.all()
     serializer_class = ServiceGroupSerializer
-    filter_backends = [filters.OrderingFilter, filters.SearchFilter]
+    filter_backends = [NullsLastOrderingFilter, filters.SearchFilter]
     search_fields = ["name"]
     ordering_fields = ["name"]
     ordering = ["name"]
@@ -149,11 +154,12 @@ class ServiceGroupViewSet(CachedReadOnlyModelViewSet):
 
 
 class ServiceViewSet(CachedReadOnlyModelViewSet):
+    schema = CustomAutoSchema(tags=["services"])
     queryset = Service.objects.select_related("group")
     serializer_class = ServiceSerializer
     filterset_class = ServiceFilter
     filter_backends = [
-        filters.OrderingFilter,
+        NullsLastOrderingFilter,
         filters.SearchFilter,
         SimpleDjangoFilterBackend,
     ]
