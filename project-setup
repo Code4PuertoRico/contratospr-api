@@ -5,6 +5,15 @@ echo "This script is meant to help you with the setup process for this project t
     "here https://github.com/TheIndexingProject/contratospr-api/blob/master/CONTRIBUTING.md#project-setup. 👀"
 echo "If this doesn't help or is even more confussing for you please let use know " \
     "by creating a new issue here https://github.com/TheIndexingProject/contratospr-api/issues/new/choose"
+echo ""
+
+read -p "Do you wish to start? [Y/n] " choice
+echo ""
+
+if ! [ $choice == "Y" ] && ! [ $choice == "y" ] ; then
+    echo "Exiting setup. 👋🏼"
+    exit 1
+fi
 
 if ! [ -x "$(command -v docker)" ] ; then
     echo "🛑 We could not detect if you have Docker installed. " \
@@ -16,6 +25,8 @@ else
     echo "Found Docker 🐳"
 fi
 
+echo ""
+
 if ! [ -x "$(command -v docker-compose)" ] ; then
     echo "🛑 We could not detect if you have Docker Compose installed. " \
         "We recommend you install Docker Compose for your system. 🛑"
@@ -25,6 +36,8 @@ if ! [ -x "$(command -v docker-compose)" ] ; then
 else
     echo "Found Docker Compose ✅"
 fi
+
+echo ""
 
 if ! [ -x "$(command -v python3.7)" ] || ! [ -x "$(command -v python3)" ]; then
     if ! [ -x "$(command -v python)" ]; then
@@ -41,6 +54,7 @@ if ! [ -x "$(command -v python3.7)" ] || ! [ -x "$(command -v python3)" ]; then
 fi
 
 echo "Found Python 3.7 🐍"
+echo ""
 
 if ! [ -x "$(command -v pipenv)" ]; then
 
@@ -73,6 +87,8 @@ pipenv install --dev
 
 pipenv run pre-commit install
 
+echo ""
+
 echo "Creating the .env file. Remember to change this file with your settings."
 if [ -f example.env ]; then
     cp example.env .env
@@ -89,6 +105,7 @@ fi
 database_backup_dump="`dirname "$0"`/docker/postgres/backup.dump"
 
 if ! [ -f $database_backup_dump ] ; then
+    echo ""
     echo "We need to download our development database dump. This file is about 100MB. 😱"
     read -p "Would you still want to download this? [Y/n] " choice
 
@@ -101,19 +118,24 @@ if ! [ -f $database_backup_dump ] ; then
     fi
 fi
 
+echo ""
 echo "You're all set! When ever you're ready to run this project using Docker and docker-compose."
 read -p "Would you like to run these commands now? [Y/n] " choice
 
 if [ $choice == "Y" ] || [ $choice == "y" ] ; then
-    echo "Building Docker images. 🐳🐳🐳"
-
+    echo ""
     read -p "Do you want to run this in detached mode (will not show logs)? [Y/n]" choice
+    echo ""
+
+    echo "Building Docker images. 🐳🐳🐳"
 
     if [ $choice == "Y" ] || [ $choice == "y" ] ; then
         docker-compose up --build -d
     else
         docker-compose up --build
     fi
+
+    echo ""
 
     status=0
     until [ $status -eq "200" ]
@@ -123,24 +145,37 @@ if [ $choice == "Y" ] || [ $choice == "y" ] ; then
         sleep 3
     done
 
+    echo ""
     echo "Service available! 🎉"
+    echo ""
+
     echo "We also need to create a superuser account. You can do this yourself or we can do this now."
     read -p "Do you want to create the superuser account now? [Y/n] " choice
 
     if [ $choice == "Y" ] || [ $choice == "y" ] ; then
         docker-compose exec web python manage.py createsuperuser
     else
-        echo "ℹ️ Remember that without this super user you will not be able to access the Django Admin. ℹ️"
-        echo "ℹ️ To create this account you can run docker-compose exec web python manage.py createsuperuser ℹ️"
+        echo ""
+        echo "ℹ️  Remember that without this super user you will not be able to access the Django Admin. ℹ️"
+        echo "ℹ️  To create this account you can run docker-compose exec web python manage.py createsuperuser ℹ️"
     fi
 fi
 
+echo ""
 echo "You are now done with the project setup! 🦄"
 echo "Have a 🌮!"
+echo ""
+
 echo "If you created a super user during this setup you can now visit http://localhost:8000/admin in the browser of your choice and login with the superuser you just created."
+echo ""
+
 echo "If you did not create the super user you will have to run docker-compose exec web python manage.py createsuperuser to create it before you use the Django admin."
 echo "You can now visit http://localhost:8000/v1/ to see the API explorer."
+echo ""
+
 echo "If you wish to see the Docker logs of all services that are running please use docker-compose logs or docker-compose logs -f to follow them."
 echo "To shutdown all services please run docker-compose down."
 echo "For more on how to use Docker and docker-compose please visit https://docs.docker.com/compose/."
+echo ""
+
 echo "If something went wrong please let us know by creating a GitHug Issue here: https://github.com/TheIndexingProject/contratospr-api/issues/new/choose."
