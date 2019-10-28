@@ -115,6 +115,15 @@ if [ $choice == "Y" ] || [ $choice == "y" ] ; then
         docker-compose up --build
     fi
 
+    status=0
+    until [ $status -eq "200" ]
+    do
+        status=$(curl -o /dev/null -s -w "%{http_code}\n" http://localhost:8000/health/liveness/)
+        echo "contratospr-api WEB service status: $status. Waiting for service to be available."
+        sleep 3
+    done
+
+    echo "Service available! 🎉"
     echo "We also need to create a superuser account. You can do this yourself or we can do this now."
     read -p "Do you want to create the superuser account now? [Y/n] " choice
 
