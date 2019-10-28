@@ -135,7 +135,12 @@ if [ $choice == "Y" ] || [ $choice == "y" ] ; then
     fi
 fi
 
-    echo "You can now visit http://localhost:8000 in the browser of your choice."
-fi
-
-echo "All done! 🦄"
+echo "You are now done with the project setup! 🦄"
+echo "Have a 🌮!"
+echo "If you created a super user during this setup you can now visit http://localhost:8000/admin in the browser of your choice and login with the superuser you just created."
+echo "If you did not create the super user you will have to run docker-compose exec web python manage.py createsuperuser to create it before you use the Django admin."
+echo "You can now visit http://localhost:8000/v1/ to see the API explorer."
+echo "If you wish to see the Docker logs of all services that are running please use docker-compose logs or docker-compose logs -f to follow them."
+echo "To shutdown all services please run docker-compose down."
+echo "For more on how to use Docker and docker-compose please visit https://docs.docker.com/compose/."
+echo "If something went wrong please let us know by creating a GitHug Issue here: https://github.com/TheIndexingProject/contratospr-api/issues/new/choose."
