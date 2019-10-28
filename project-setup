@@ -106,7 +106,14 @@ read -p "Would you like to run these commands now? [Y/n] " choice
 
 if [ $choice == "Y" ] || [ $choice == "y" ] ; then
     echo "Building Docker images. 🐳🐳🐳"
-    docker-compose up --build -d
+
+    read -p "Do you want to run this in detached mode (will not show logs)? [Y/n]" choice
+
+    if [ $choice == "Y" ] || [ $choice == "y" ] ; then
+        docker-compose up --build -d
+    else
+        docker-compose up --build
+    fi
 
     echo "We also need to create a superuser account. You can do this yourself or we can do this now."
     read -p "Do you want to create the superuser account now? [Y/n] " choice
