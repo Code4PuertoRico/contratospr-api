@@ -130,7 +130,7 @@ if [ $choice == "Y" ] || [ $choice == "y" ] ; then
     if [ $choice == "Y" ] || [ $choice == "y" ] ; then
         docker-compose exec web python manage.py createsuperuser
     else
-        echo "ℹ️ Remember that without this superuser you will not be able to access the Django Admin. ℹ️"
+        echo "ℹ️ Remember that without this super user you will not be able to access the Django Admin. ℹ️"
         echo "ℹ️ To create this account you can run docker-compose exec web python manage.py createsuperuser ℹ️"
     fi
 
