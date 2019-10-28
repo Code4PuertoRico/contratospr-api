@@ -86,7 +86,6 @@ else
     echo "FILEPREVIEWS_API_SECRET=""" >> .env
 fi
 
-
 database_backup_dump="`dirname "$0"`/docker/postgres/backup.dump"
 
 if ! [ -f $database_backup_dump ] ; then
