@@ -1,6 +1,6 @@
 # Database dump for development
 
-https://s3.amazonaws.com/data.contratospr.com/2019-08-24/backup.dump
+https://s3.amazonaws.com/data.contratospr.com/2019-10-27/backup.dump
 
 # Contracts data file
 
