@@ -50,8 +50,13 @@ services:
     command: start-web
     entrypoint: /app/bin/docker-entrypoint
     restart: on-failure
-    env_file:
-      - .env
+    environment:
+      - PYTHONUNBUFFERED=1
+      - DJANGO_SECRET_KEY=dont-tell-eve
+      - DATABASE_URL=postgres://postgres:password@database/postgres
+      - REDIS_URL=redis://redis:6379
+      - FILEPREVIEWS_API_KEY=""
+      - FILEPREVIEWS_API_SECRET=""
     volumes:
       - .:/app
     ports:

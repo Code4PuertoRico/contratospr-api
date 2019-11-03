@@ -1,10 +1,14 @@
 #! /bin/bash
 
+PROJECT_SETUP_URL="https://github.com/TheIndexingProject/contratospr-api/blob/master/CONTRIBUTING.md#project-setup"
+NEW_ISSUE_URL="https://github.com/TheIndexingProject/contratospr-api/issues/new/choose"
+DATABASE_DUMP_URL="https://s3.amazonaws.com/data.contratospr.com/2019-08-24/backup.dump"
+
 echo "Thanks for your interest in ContratosPR and its API ❤️"
 echo "This script is meant to help you with the setup process for this project that is outlined " \
-    "here https://github.com/TheIndexingProject/contratospr-api/blob/master/CONTRIBUTING.md#project-setup. 👀"
+    "here $PROJECT_SETUP_URL. 👀"
 echo "If this doesn't help or is even more confussing for you please let use know " \
-    "by creating a new issue here https://github.com/TheIndexingProject/contratospr-api/issues/new/choose"
+    "by creating a new issue here $NEW_ISSUE_URL"
 echo ""
 
 read -p "Do you wish to start? [Y/n] " choice
@@ -46,7 +50,7 @@ if ! [ -x "$(command -v python3.7)" ] || ! [ -x "$(command -v python3)" ]; then
     else
         python_version=`python -c 'import sys; version=sys.version_info[:3]; print("{0}.{1}".format(*version))'`
 
-        if [ $python_version != "3.7" ] ; then 
+        if [ $python_version != "3.7" ] ; then
             echo "Please install Python version 3.7.2 or greater"
             exit 1
         fi
@@ -110,10 +114,10 @@ if ! [ -f $database_backup_dump ] ; then
     read -p "Would you still want to download this? [Y/n] " choice
 
     if [ $choice == "Y" ] || [ $choice == "y" ] ; then
-        curl -o $database_backup_dump https://s3.amazonaws.com/data.contratospr.com/2019-08-24/backup.dump
+        curl -o $database_backup_dump $DATABASE_DUMP_URL
     else
         echo "The file will not be downloaded. If you change your mind you can download it here: " \
-            "https://s3.amazonaws.com/data.contratospr.com/2019-08-24/backup.dump"
+            "$DATABASE_DUMP_URL"
         echo "⚠️ Remember that if you run this project without this you will not have any test data. ⚠️"
     fi
 fi
@@ -124,17 +128,9 @@ read -p "Would you like to run these commands now? [Y/n] " choice
 
 if [ $choice == "Y" ] || [ $choice == "y" ] ; then
     echo ""
-    read -p "Do you want to run this in detached mode (will not show logs)? [Y/n]" choice
-    echo ""
-
     echo "Building Docker images. 🐳🐳🐳"
-
-    if [ $choice == "Y" ] || [ $choice == "y" ] ; then
-        docker-compose up --build -d
-    else
-        docker-compose up --build
-    fi
-
+    docker-compose up --build -d
+    echo "To see the container logs open another terminal and run docker-compose logs -f"
     echo ""
 
     status=0
@@ -178,4 +174,4 @@ echo "To shutdown all services please run docker-compose down."
 echo "For more on how to use Docker and docker-compose please visit https://docs.docker.com/compose/."
 echo ""
 
-echo "If something went wrong please let us know by creating a GitHug Issue here: https://github.com/TheIndexingProject/contratospr-api/issues/new/choose."
+echo "If something went wrong please let us know by creating a GitHug Issue here: $NEW_ISSUE_URL."
