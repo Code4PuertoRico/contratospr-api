@@ -157,24 +157,24 @@ class Document(BaseModel):
             self.update_preview_data(response)
             self.save(update_fields=["preview_data_file"])
 
-    def detect_text(self, force=False):
+    def detect_text(self, modes=None):
         preview_thumbnails = (self.preview_data or {}).get("thumbnails") or []
-        use_cloud_vision = force and preview_thumbnails and credentials
 
-        pages = []
-        output = pdf_to_text(self.file)
+        if modes is None or "pdf_to_text" in modes:
+            pages = []
+            output = pdf_to_text(self.file)
 
-        for number, page in enumerate(output.split(b"\f"), start=1):
-            text = page.strip().decode("utf-8")
+            for number, page in enumerate(output.split(b"\f"), start=1):
+                text = page.strip().decode("utf-8")
 
-            if text:
-                pages.append({"number": number, "text": text})
+                if text:
+                    pages.append({"number": number, "text": text})
 
-        if pages:
-            self.pages = pages
-            return self.save(update_fields=["pages"])
+            if pages:
+                self.pages = pages
+                return self.save(update_fields=["pages"])
 
-        if self.preview_data and not use_cloud_vision:
+        if (modes is None or "filepreviews" in modes) and self.preview_data:
             pages = []
             original_file = self.preview_data["original_file"] or {
                 "metadata": {"ocr": []}
@@ -190,7 +190,11 @@ class Document(BaseModel):
                 self.pages = pages
                 return self.save(update_fields=["pages"])
 
-        if use_cloud_vision:
+        if (
+            (modes is None or "cloud_vision" in modes)
+            and preview_thumbnails
+            and credentials
+        ):
             client = vision.ImageAnnotatorClient(credentials=credentials)
             results = []
             pages = []
