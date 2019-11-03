@@ -12,7 +12,12 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         limit = options.get("limit")
-        documents = Document.objects.exclude(file="").only("pk")[:limit]
+        documents = (
+            Document.objects.filter(pages__isnull=True)
+            .exclude(file="")
+            .order_by("modified_at")
+            .only("pk")[:limit]
+        )
 
         for document in documents:
             self.stdout.write(f"Detecting text for document {document.pk}")
