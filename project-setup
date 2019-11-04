@@ -1,0 +1,177 @@
+#! /bin/bash
+
+PROJECT_SETUP_URL="https://github.com/TheIndexingProject/contratospr-api/blob/master/CONTRIBUTING.md#project-setup"
+NEW_ISSUE_URL="https://github.com/TheIndexingProject/contratospr-api/issues/new/choose"
+DATABASE_DUMP_URL="https://s3.amazonaws.com/data.contratospr.com/2019-08-24/backup.dump"
+
+echo "Thanks for your interest in ContratosPR and its API ❤️"
+echo "This script is meant to help you with the setup process for this project that is outlined " \
+    "here $PROJECT_SETUP_URL. 👀"
+echo "If this doesn't help or is even more confussing for you please let use know " \
+    "by creating a new issue here $NEW_ISSUE_URL"
+echo ""
+
+read -p "Do you wish to start? [Y/n] " choice
+echo ""
+
+if ! [ $choice == "Y" ] && ! [ $choice == "y" ] ; then
+    echo "Exiting setup. 👋🏼"
+    exit 1
+fi
+
+if ! [ -x "$(command -v docker)" ] ; then
+    echo "🛑 We could not detect if you have Docker installed. " \
+        "We recommend you install both Docker for your system. 🛑"
+    echo "For information on how to do that please take a look at https://docs.docker.com/install/"
+
+    exit 1
+else
+    echo "Found Docker 🐳"
+fi
+
+echo ""
+
+if ! [ -x "$(command -v docker-compose)" ] ; then
+    echo "🛑 We could not detect if you have Docker Compose installed. " \
+        "We recommend you install Docker Compose for your system. 🛑"
+    echo "For information on how to do that please take a look at https://docs.docker.com/compose/install/"
+
+    exit 1
+else
+    echo "Found Docker Compose ✅"
+fi
+
+echo ""
+
+if ! [ -x "$(command -v python3.7)" ] || ! [ -x "$(command -v python3)" ]; then
+    if ! [ -x "$(command -v python)" ]; then
+        echo "🛑 We could not detect that you have Python installed. Please install Python 3.7.x. 🛑"
+        exit 1
+    else
+        python_version=`python -c 'import sys; version=sys.version_info[:3]; print("{0}.{1}".format(*version))'`
+
+        if [ $python_version != "3.7" ] ; then
+            echo "Please install Python version 3.7.2 or greater"
+            exit 1
+        fi
+    fi
+fi
+
+echo "Found Python 3.7 🐍"
+echo ""
+
+if ! [ -x "$(command -v pipenv)" ]; then
+
+    read -p "You do not have pipenv installed. The default installation method will be Pip. Would you like to install it with [P]ip or [H]omebrew? " choice
+
+    if [ $choice == "h" ] || [ $choice == "H" ] ; then
+        if ! [ -x "$(command -v brew)" ] ; then
+            echo "🛑 We could not find Homebrew installed in your system. " \
+                "Please take a look on how to install it here: https://brew.sh/ 🛑"
+            exit 1
+        fi
+
+        echo "Found Homebre 🍺. Installing Pipenv."
+        brew install pipenv
+    else
+        echo "Installing using Pip"
+
+        if [ -x "$(command -v pip3.7)" ]; then
+            pip3.7 install pipenv
+        elif [ -x "$(command -v pip3)" ]; then
+            pip3 install pipenv
+        else
+            echo "🛑 We could not find pip installed in your system. 🛑"
+            exit 1
+        fi
+    fi
+fi
+
+pipenv install --dev
+
+pipenv run pre-commit install
+
+echo ""
+
+echo "Creating the .env file. Remember to change this file with your settings."
+if [ -f example.env ]; then
+    cp example.env .env
+else
+    echo "PYTHONUNBUFFERED=1" >> .env
+    echo "" >> .env
+    echo "DJANGO_SECRET_KEY=dont-tell-eve" >> .env
+    echo "DATABASE_URL=postgres://postgres:password@database/postgres" >> .env
+    echo "REDIS_URL=redis://redis:6379" >> .env
+    echo "FILEPREVIEWS_API_KEY=""" >> .env
+    echo "FILEPREVIEWS_API_SECRET=""" >> .env
+fi
+
+database_backup_dump="`dirname "$0"`/docker/postgres/backup.dump"
+
+if ! [ -f $database_backup_dump ] ; then
+    echo ""
+    echo "We need to download our development database dump. This file is about 100MB. 😱"
+    read -p "Would you still want to download this? [Y/n] " choice
+
+    if [ $choice == "Y" ] || [ $choice == "y" ] ; then
+        curl -o $database_backup_dump $DATABASE_DUMP_URL
+    else
+        echo "The file will not be downloaded. If you change your mind you can download it here: " \
+            "$DATABASE_DUMP_URL"
+        echo "⚠️ Remember that if you run this project without this you will not have any test data. ⚠️"
+    fi
+fi
+
+echo ""
+echo "You're all set! When ever you're ready to run this project using Docker and docker-compose."
+read -p "Would you like to run these commands now? [Y/n] " choice
+
+if [ $choice == "Y" ] || [ $choice == "y" ] ; then
+    echo ""
+    echo "Building Docker images. 🐳🐳🐳"
+    docker-compose up --build -d
+    echo "To see the container logs open another terminal and run docker-compose logs -f"
+    echo ""
+
+    status=0
+    until [ $status -eq "200" ]
+    do
+        status=$(curl -o /dev/null -s -w "%{http_code}\n" http://localhost:8000/health/liveness/)
+        echo "contratospr-api WEB service status: $status. Waiting for service to be available."
+        sleep 3
+    done
+
+    echo ""
+    echo "Service available! 🎉"
+    echo ""
+
+    echo "We also need to create a superuser account. You can do this yourself or we can do this now."
+    read -p "Do you want to create the superuser account now? [Y/n] " choice
+
+    if [ $choice == "Y" ] || [ $choice == "y" ] ; then
+        docker-compose exec web python manage.py createsuperuser
+    else
+        echo ""
+        echo "ℹ️  Remember that without this super user you will not be able to access the Django Admin. ℹ️"
+        echo "ℹ️  To create this account you can run docker-compose exec web python manage.py createsuperuser ℹ️"
+    fi
+fi
+
+echo ""
+echo "You are now done with the project setup! 🦄"
+echo "Have a 🌮!"
+echo ""
+
+echo "If you created a super user during this setup you can now visit http://localhost:8000/admin in the browser of your choice and login with the superuser you just created."
+echo ""
+
+echo "If you did not create the super user you will have to run docker-compose exec web python manage.py createsuperuser to create it before you use the Django admin."
+echo "You can now visit http://localhost:8000/v1/ to see the API explorer."
+echo ""
+
+echo "If you wish to see the Docker logs of all services that are running please use docker-compose logs or docker-compose logs -f to follow them."
+echo "To shutdown all services please run docker-compose down."
+echo "For more on how to use Docker and docker-compose please visit https://docs.docker.com/compose/."
+echo ""
+
+echo "If something went wrong please let us know by creating a GitHug Issue here: $NEW_ISSUE_URL."
