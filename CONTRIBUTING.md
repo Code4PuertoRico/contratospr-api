@@ -82,6 +82,14 @@ If this seems like a lot or you aren't able to do all this setup, you might also
 If you want to go the usual route and run the project locally, though:
 
 - Fork the project: https://guides.github.com/activities/forking/#fork
+
+After you've forked and cloned the repository you can use our [project-setup](project-setup) script to get up and running quickly:
+
+- In your terminal you can run `> ./project-setup`
+- Just answer the questions and follow any steps in the prompt.
+
+Alternatively you can execute the following steps to setup the project as well:
+
 - Install pipenv: `pip install pipenv`
 - Install dependencies: `pipenv install --dev`
 - Install pre-commit hooks: `pipenv run pre-commit install`
@@ -92,7 +100,7 @@ If you want to go the usual route and run the project locally, though:
 - Create super user: `docker-compose exec web python manage.py createsuperuser`
 - open http://localhost:8000
 
-And you should be ready to go!
+And you should be ready to go! :tada:
 
 You can use this command to run tests on demand: `docker-compose run tests`
 
