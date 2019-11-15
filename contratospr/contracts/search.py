@@ -1,15 +1,15 @@
 from django.contrib.postgres.fields import JSONField
-from django.contrib.postgres.search import SearchQuery
+from django.contrib.postgres.search import SearchQuery, SearchVector
 from django.db.models.functions import Cast
 
-from ..utils.search import SearchVector
 from .models import Contract
 
+search_config = "spanish_unaccent"
 search_vector = (
-    SearchVector(Cast("document__pages", JSONField()))
-    + SearchVector("contractors__name")
-    + SearchVector("entity__name")
-    + SearchVector("number")
+    SearchVector(Cast("document__pages", JSONField()), config=search_config)
+    + SearchVector("contractors__name", config=search_config)
+    + SearchVector("entity__name", config=search_config)
+    + SearchVector("number", config=search_config)
 )
 
 
@@ -30,7 +30,7 @@ def search_contracts(query, service_id, service_group_id):
     filter_kwargs = {}
 
     if query:
-        filter_kwargs["search_vector"] = SearchQuery(query)
+        filter_kwargs["search_vector"] = SearchQuery(query, config=search_config)
 
     if service_id:
         filter_kwargs["service_id"] = service_id

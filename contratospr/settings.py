@@ -62,6 +62,7 @@ class Common(Configuration):
         "django.contrib.sessions",
         "django.contrib.messages",
         "django.contrib.humanize",
+        "django.contrib.postgres",
         "whitenoise.runserver_nostatic",
         "django.contrib.staticfiles",
         "django_extensions",
