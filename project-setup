@@ -102,8 +102,6 @@ else
     echo "DJANGO_SECRET_KEY=dont-tell-eve" >> .env
     echo "DATABASE_URL=postgres://postgres:password@database/postgres" >> .env
     echo "REDIS_URL=redis://redis:6379" >> .env
-    echo "FILEPREVIEWS_API_KEY=""" >> .env
-    echo "FILEPREVIEWS_API_SECRET=""" >> .env
 fi
 
 database_backup_dump="`dirname "$0"`/docker/postgres/backup.dump"
