@@ -1,5 +1,4 @@
 import cgi
-import json
 from tempfile import TemporaryFile
 
 import requests
@@ -9,31 +8,12 @@ from django.contrib.postgres.indexes import GinIndex
 from django.contrib.postgres.search import SearchVectorField
 from django.core.files import File
 from django.db import models
-from django.utils.functional import cached_property
 from django.utils.module_loading import import_string
 from django_extensions.db.fields import AutoSlugField
-from google.cloud import vision
-from google.oauth2.service_account import Credentials
-from google.protobuf.json_format import MessageToDict
 
-from ..utils.filepreviews import FilePreviews
 from ..utils.models import BaseModel
 from ..utils.pdftotext import pdf_to_text
 from .queryset import ContractQuerySet
-
-if settings.FILEPREVIEWS_API_KEY and settings.FILEPREVIEWS_API_SECRET:
-    filepreviews = FilePreviews(
-        api_key=settings.FILEPREVIEWS_API_KEY,
-        api_secret=settings.FILEPREVIEWS_API_SECRET,
-    )
-else:
-    filepreviews = None
-
-if settings.GOOGLE_APPLICATION_CREDENTIALS:
-    service_account_info = json.loads(settings.GOOGLE_APPLICATION_CREDENTIALS)
-    credentials = Credentials.from_service_account_info(service_account_info)
-else:
-    credentials = None
 
 document_storage = import_string(settings.CONTRACTS_DOCUMENT_STORAGE)()
 
@@ -93,30 +73,8 @@ class Document(BaseModel):
 
     pages = JSONField(blank=True, null=True)
 
-    preview_data_file = models.FileField(
-        blank=True, null=True, upload_to=document_file_path, storage=document_storage
-    )
-
-    vision_data_file = models.FileField(
-        blank=True, null=True, upload_to=document_file_path, storage=document_storage
-    )
-
     def __str__(self):
         return f"{self.source_id}"
-
-    @cached_property
-    def preview_data(self):
-        if self.preview_data_file:
-            with self.preview_data_file.open() as preview_data_file:
-                preview_data = json.load(preview_data_file)
-            return preview_data
-
-    @cached_property
-    def vision_data(self):
-        if self.vision_data_file:
-            with self.vision_data_file.open() as vision_data_file:
-                vision_data = json.load(vision_data_file)
-            return vision_data
 
     def download(self):
         with TemporaryFile() as temp_file:
@@ -130,101 +88,19 @@ class Document(BaseModel):
 
             self.file.save(file_name, File(temp_file))
 
-    def update_preview_data(self, data):
-        with TemporaryFile() as temp_file:
-            temp_file.write(json.dumps(data).encode("utf-8"))
-            temp_file.seek(0)
+    def detect_text(self):
+        pages = []
+        output = pdf_to_text(self.file)
 
-            self.preview_data_file.save("preview.json", File(temp_file), save=False)
+        for number, page in enumerate(output.split(b"\f"), start=1):
+            text = page.strip().decode("utf-8")
 
-    def update_vision_data(self, data):
-        with TemporaryFile() as temp_file:
-            temp_file.write(json.dumps(data).encode("utf-8"))
-            temp_file.seek(0)
+            if text:
+                pages.append({"number": number, "text": text})
 
-            self.vision_data_file.save("vision.json", File(temp_file), save=False)
-
-    def generate_preview(self):
-        if self.file and filepreviews:
-            response = filepreviews.generate(
-                self.file.url,
-                pages="all",
-                metadata=["ocr"],
-                data={"document_id": self.pk},
-                uploader={"public": True},
-            )
-
-            self.update_preview_data(response)
-            self.save(update_fields=["preview_data_file"])
-
-    def detect_text(self, modes=None):
-        preview_thumbnails = (self.preview_data or {}).get("thumbnails") or []
-
-        if modes is None or "pdf_to_text" in modes:
-            pages = []
-            output = pdf_to_text(self.file)
-
-            for number, page in enumerate(output.split(b"\f"), start=1):
-                text = page.strip().decode("utf-8")
-
-                if text:
-                    pages.append({"number": number, "text": text})
-
-            if pages:
-                self.pages = pages
-                return self.save(update_fields=["pages"])
-
-        if (modes is None or "filepreviews" in modes) and self.preview_data:
-            pages = []
-            original_file = self.preview_data["original_file"] or {
-                "metadata": {"ocr": []}
-            }
-
-            for result in original_file["metadata"]["ocr"]:
-                text = result.get("text", "").strip()
-
-                if text:
-                    pages.append({"number": result["page"], "text": text})
-
-            if pages:
-                self.pages = pages
-                return self.save(update_fields=["pages"])
-
-        if (
-            (modes is None or "cloud_vision" in modes)
-            and preview_thumbnails
-            and credentials
-        ):
-            client = vision.ImageAnnotatorClient(credentials=credentials)
-            results = []
-            pages = []
-
-            for thumbnail in preview_thumbnails:
-                image = vision.types.Image()
-                image.source.image_uri = thumbnail["url"]
-                response = client.document_text_detection(image=image)
-                result = MessageToDict(response)
-                result["page"] = thumbnail["page"]
-                results.append(result)
-
-                full_text_annotation = result.get("fullTextAnnotation")
-                text_annotations = result.get("textAnnotations")
-
-                if full_text_annotation:
-                    text = full_text_annotation.get("text", "").strip()
-
-                    if text:
-                        pages.append({"number": result["page"], "text": text})
-                elif text_annotations:
-                    text = text_annotations[0].get("description", "").strip()
-
-                    if text:
-                        pages.append({"number": result["page"], "text": text})
-
-                if pages:
-                    self.pages = pages
-                    self.update_vision_data(results)
-                    return self.save(update_fields=["vision_data_file", "pages"])
+        if pages:
+            self.pages = pages
+            return self.save(update_fields=["pages"])
 
 
 class Contractor(BaseModel):
