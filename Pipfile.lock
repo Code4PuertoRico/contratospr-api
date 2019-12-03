@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "cfe1e084329f8b4376eeb9fcf563d6aa5eaa3890a1b818a7d2949337fbc511c1"
+            "sha256": "4b22b3f51424be24e768c121ea3341fbd134550de70626996ac5f84e06e6d4e6"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -39,17 +39,17 @@
         },
         "boto3": {
             "hashes": [
-                "sha256:bbfc33584b10a1d245db8538f7fa728f54f35a953eb7dc74037ed8401acd309f",
-                "sha256:d9da982bfe358d6ebc21177035c0f6489e356a1b5a80bb90b8b2b9d787ff8fb6"
+                "sha256:259b795fc577ba0c8c085509d18bc7b9a7c7e813c93c2d72278affb922f64d8d",
+                "sha256:cf887435085e90ab2fdce50ea77b4569b8728faf9a8d86b16f382161af6bd441"
             ],
-            "version": "==1.10.29"
+            "version": "==1.10.30"
         },
         "botocore": {
             "hashes": [
-                "sha256:37d2381ecd3843a4f5f2dbf86411ba834baf23988c9824d607b6cf6fbd684583",
-                "sha256:ef1cc8fe86c4a04d1d8832fffc2ba08150c8d1b30ce8bb62b93b5a69bde20f6d"
+                "sha256:9857929cab4366badda0cc9d2066bb1f71269344ef7523186f6a1b26924bbc15",
+                "sha256:ced50943d83d7007fe02b91739e849f36b64ed5c5ab7af3b771bff21aca554a7"
             ],
-            "version": "==1.13.29"
+            "version": "==1.13.30"
         },
         "celery": {
             "extras": [
@@ -101,11 +101,11 @@
         },
         "django-configurations": {
             "hashes": [
-                "sha256:71d9acdff33aa034f0157b0b3d23629fe0cd499bf4d0b6d699b9ca0701d952e8",
-                "sha256:e70433eeed10549d30bf5ca386c962505ff9f492893dd2483c52af536347adce"
+                "sha256:0b93cb7042739e2d69cfc6fb81676bbd3cbb63ea19b02e8b681f4cad3a8aaf1b",
+                "sha256:9e3bcea1355ac50a4c9f854f751d214cb17e5f8adf18405a4488d0a1e8945915"
             ],
             "index": "pypi",
-            "version": "==2.1"
+            "version": "==2.2"
         },
         "django-cors-headers": {
             "hashes": [
@@ -156,11 +156,9 @@
             "version": "==4.10.0"
         },
         "django-s3-storage": {
-            "hashes": [
-                "sha256:14b8670a0d32b364f76174675904deffedb10332ad3aa2df84e98a7f6479fae9"
-            ],
-            "index": "pypi",
-            "version": "==0.12.5"
+            "editable": true,
+            "git": "https://github.com/etianen/django-s3-storage.git",
+            "ref": "ad1f7023e4b3ad75dfc0d8de9dda513d0b53410d"
         },
         "djangorestframework": {
             "hashes": [
