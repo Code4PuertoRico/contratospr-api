@@ -34,7 +34,7 @@ django-redis = "==4.10.0"
 celery = {extras = ["redis"],version = "==4.4.0"}
 structlog = "==19.2.0"
 uritemplate = "==3.0.0"
-pyyaml = "==5.1.2"
+pyyaml = "==5.2"
 
 [requires]
 python_version = "3.7"
