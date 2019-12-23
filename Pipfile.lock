@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "4bd5aa14de46818a772dd69cf516167c9ff8ce8cab149dd9cdb4199a42448951"
+            "sha256": "59c439706f364e874094ee554bd2771535a5281a2b25a8cc38ff6da091d4593e"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -188,15 +188,16 @@
         },
         "h11": {
             "hashes": [
-                "sha256:acca6a44cb52a32ab442b1779adf0875c443c689e9e028f8d831a3769f9c5208",
-                "sha256:f2b1ca39bfed357d1f19ac732913d5f9faa54a5062eca7d2ec3a916cfb7ae4c7"
+                "sha256:33d4bca7be0fa039f4e84d50ab00531047e53d6ee8ffbc83501ea602c169cae1",
+                "sha256:4bc6d6a1238b7615b266ada57e0618568066f57dd6fa967d1290ec9309b2f2f1"
             ],
-            "version": "==0.8.1"
+            "version": "==0.9.0"
         },
         "httptools": {
             "hashes": [
                 "sha256:e00cbd7ba01ff748e494248183abc6e153f49181169d8a3d41bb49132ca01dfc"
             ],
+            "markers": "sys_platform != 'win32' and sys_platform != 'cygwin' and platform_python_implementation != 'pypy'",
             "version": "==0.0.13"
         },
         "idna": {
@@ -384,10 +385,11 @@
         },
         "uvicorn": {
             "hashes": [
-                "sha256:f4c34642618449f55e2bab8c6b22ff7615b520d2e7e23275be2ca894254327a3"
+                "sha256:68a13fedeb38260ce663a1d01d367e6809b09b2dedd2a973af5d73291e010e28",
+                "sha256:d07129d98440ef69e4fd3aaebf16ab9b96cbcdffd813b9889bf8ec001351f4b8"
             ],
             "index": "pypi",
-            "version": "==0.10.8"
+            "version": "==0.11.1"
         },
         "uvloop": {
             "hashes": [
@@ -401,6 +403,7 @@
                 "sha256:e7514d7a48c063226b7d06617cbb12a14278d4323a065a8d46a7962686ce2e95",
                 "sha256:f07909cd9fc08c52d294b1570bba92186181ca01fe3dc9ffba68955273dd7362"
             ],
+            "markers": "sys_platform != 'win32' and sys_platform != 'cygwin' and platform_python_implementation != 'pypy'",
             "version": "==0.14.0"
         },
         "vine": {
