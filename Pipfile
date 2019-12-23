@@ -33,7 +33,7 @@ django-cors-headers = "==3.2.0"
 django-redis = "==4.11.0"
 celery = {extras = ["redis"],version = "==4.4.0"}
 structlog = "==19.2.0"
-uritemplate = "==3.0.0"
+uritemplate = "==3.0.1"
 pyyaml = "==5.2"
 
 [requires]
