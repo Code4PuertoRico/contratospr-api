@@ -21,4 +21,4 @@ class Command(BaseCommand):
 
         for document in documents:
             self.stdout.write(f"Detecting text for document {document.pk}")
-            detect_text.delay(document.pk, modes=["pdf_to_text"])
+            detect_text.delay(document.pk)
