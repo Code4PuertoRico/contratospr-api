@@ -13,7 +13,7 @@ from django_extensions.db.fields import AutoSlugField
 
 from ..utils.models import BaseModel
 from ..utils.pdftotext import pdf_to_text
-from .queryset import ContractQuerySet
+from .manager import ContractManager
 
 document_storage = import_string(settings.CONTRACTS_DOCUMENT_STORAGE)()
 
@@ -138,7 +138,7 @@ class Contract(BaseModel):
 
     search_vector = SearchVectorField(null=True)
 
-    objects = ContractQuerySet.as_manager()
+    objects = ContractManager()
 
     class Meta:
         indexes = [GinIndex(fields=["search_vector"])]
