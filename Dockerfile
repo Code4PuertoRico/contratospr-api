@@ -26,6 +26,13 @@ ARG PIPENV_ARGS
 ENV LANG en_US.utf8
 ENV PYTHONUNBUFFERED 1
 
+# Install tesseract
+RUN apt-get update && apt-get install -y \
+		tesseract-ocr \
+		tesseract-ocr-eng \
+		tesseract-ocr-spa && \
+	rm -rf /var/lib/apt/lists/*
+
 # Add app user
 RUN adduser --disabled-login app
 
@@ -34,6 +41,8 @@ RUN pip install pipenv==2018.11.26
 WORKDIR /app/
 
 COPY --from=builder /tmp/poppler/bin/pdftotext /usr/local/bin/
+COPY --from=builder /tmp/poppler/bin/pdftoppm /usr/local/bin/
+COPY --from=builder /tmp/poppler/bin/pdfinfo /usr/local/bin/
 COPY Pipfile Pipfile.lock /app/
 
 # Install application requirements

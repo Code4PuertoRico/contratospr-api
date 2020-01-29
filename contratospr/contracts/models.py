@@ -12,7 +12,7 @@ from django.utils.module_loading import import_string
 from django_extensions.db.fields import AutoSlugField
 
 from ..utils.models import BaseModel
-from ..utils.pdftotext import pdf_to_text
+from ..utils.pdf import extract_pdf_text_by_pages
 from .manager import ContractManager
 
 document_storage = import_string(settings.CONTRACTS_DOCUMENT_STORAGE)()
@@ -89,14 +89,7 @@ class Document(BaseModel):
             self.file.save(file_name, File(temp_file))
 
     def detect_text(self):
-        pages = []
-        output = pdf_to_text(self.file)
-
-        for number, page in enumerate(output.split(b"\f"), start=1):
-            text = page.strip().decode("utf-8")
-
-            if text:
-                pages.append({"number": number, "text": text})
+        pages = extract_pdf_text_by_pages(self.file)
 
         if pages:
             self.pages = pages
