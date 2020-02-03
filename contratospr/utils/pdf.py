@@ -1,7 +1,12 @@
 import subprocess
+from structlog import get_logger
+
+logger = get_logger(__name__)
 
 
 def pdf_to_png(file, page=1):
+    logger.info("Extracting png from pdf...", page=page)
+
     process = subprocess.Popen(
         ["pdftoppm", "-png", "-f", f"{page}", "-l", f"{page}", "-"],
         stdin=file,
@@ -12,6 +17,7 @@ def pdf_to_png(file, page=1):
 
 
 def get_pdf_pages(file):
+    logger.info("Extracting pages with pdfinfo...")
     process = subprocess.Popen(["pdfinfo", "-"], stdin=file, stdout=subprocess.PIPE)
 
     output, _ = process.communicate()
@@ -27,6 +33,7 @@ def get_pdf_pages(file):
 
 
 def tesseract(file):
+    logger.info("Extracting with tesseract...")
     process = subprocess.Popen(
         ["tesseract", "-", "-", "quiet"], stdin=file, stdout=subprocess.PIPE
     )
@@ -37,6 +44,7 @@ def tesseract(file):
 
 
 def pdf_to_text(file):
+    logger.info("Extracting with pdftotext...")
     process = subprocess.Popen(
         ["pdftotext", "-", "-"], stdin=file, stdout=subprocess.PIPE
     )
@@ -54,7 +62,12 @@ def extract_pdf_text_by_pages(file):
         text = page.strip().decode("utf-8")
 
         if text:
+            logger.info(
+                "Successfully extracted text", number=number, method="pdftotext"
+            )
             pages.append({"number": number, "text": text})
+        else:
+            logger.info("Failure to extract text", number=number, method="pdftotext")
 
     if not pages:
         file.seek(0)
@@ -68,6 +81,13 @@ def extract_pdf_text_by_pages(file):
             text = page.strip().decode("utf-8")
 
             if text:
+                logger.info(
+                    "Successfully extracted text", number=number, method="tesseract"
+                )
                 pages.append({"number": page_number, "text": text})
+            else:
+                logger.info(
+                    "Failure to extract text", number=number, method="tesseract"
+                )
 
     return pages

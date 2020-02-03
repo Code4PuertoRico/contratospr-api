@@ -106,11 +106,17 @@ def download_document(document_id):
 
 @app.task
 def detect_text(document_id):
+    logger.info("Detecting document text", document_id=document_id)
     document = Document.objects.get(pk=document_id)
 
     document.detect_text()
 
     for contract in document.contract_set.all():
+        logger.info(
+            "Indexing document contracts",
+            document_id=document_id,
+            contract_id=contract.pk,
+        )
         index_contract(contract)
 
     return document
