@@ -49,6 +49,10 @@ COPY Pipfile Pipfile.lock /app/
 RUN pipenv install --deploy --system $PIPENV_ARGS && \
     rm -rf /root/.cache
 
+RUN python -m spacy download es_core_news_sm && \
+		python -m spacy download es_core_news_md && \
+		python -m spacy download xx_ent_wiki_sm
+
 # Bundle app source
 COPY . /app/
 

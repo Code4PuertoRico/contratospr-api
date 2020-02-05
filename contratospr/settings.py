@@ -201,6 +201,8 @@ class Development(Common):
 
     CACHES = {"default": {"BACKEND": "django.core.cache.backends.dummy.DummyCache"}}
 
+    NOTEBOOK_ARGUMENTS = ["--ip", "0.0.0.0"]
+
 
 class Production(Common):
     """

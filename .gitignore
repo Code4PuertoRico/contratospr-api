@@ -96,5 +96,7 @@ node_modules
 .vscode/
 .idea/
 
+.ipynb_checkpoints/
+
 docker/postgres/backup.dump
 data/contracts.jsonl.gz
