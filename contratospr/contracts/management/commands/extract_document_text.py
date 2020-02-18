@@ -9,7 +9,7 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("--limit", nargs="?", type=int, default=1000)
-        parser.add_argument('--wait', action='store_true')
+        parser.add_argument("--wait", action="store_true")
 
     def handle(self, *args, **options):
         limit = options.get("limit")
