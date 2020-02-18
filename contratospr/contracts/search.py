@@ -44,11 +44,7 @@ def search_contracts(query, service_id, service_group_id):
     return (
         Contract.objects.select_related("document", "entity", "service")
         .prefetch_related("contractors")
-        .defer(
-            "document__pages",
-            "document__preview_data_file",
-            "document__vision_data_file",
-        )
+        .defer("document__pages")
         .filter(**filter_kwargs)
         .order_by("-date_of_grant")
     )

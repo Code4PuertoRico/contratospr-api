@@ -91,21 +91,6 @@ pipenv install --dev
 
 pipenv run pre-commit install
 
-echo ""
-
-echo "Creating the .env file. Remember to change this file with your settings."
-if [ -f example.env ]; then
-    cp example.env .env
-else
-    echo "PYTHONUNBUFFERED=1" >> .env
-    echo "" >> .env
-    echo "DJANGO_SECRET_KEY=dont-tell-eve" >> .env
-    echo "DATABASE_URL=postgres://postgres:password@database/postgres" >> .env
-    echo "REDIS_URL=redis://redis:6379" >> .env
-    echo "FILEPREVIEWS_API_KEY=""" >> .env
-    echo "FILEPREVIEWS_API_SECRET=""" >> .env
-fi
-
 database_backup_dump="`dirname "$0"`/docker/postgres/backup.dump"
 
 if ! [ -f $database_backup_dump ] ; then

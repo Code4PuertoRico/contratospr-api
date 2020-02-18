@@ -9,6 +9,7 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("--limit", nargs="?", type=int, default=1000)
+        parser.add_argument('--wait', action='store_true')
 
     def handle(self, *args, **options):
         limit = options.get("limit")
@@ -21,4 +22,8 @@ class Command(BaseCommand):
 
         for document in documents:
             self.stdout.write(f"Detecting text for document {document.pk}")
-            detect_text.delay(document.pk, modes=["pdf_to_text"])
+
+            if options.get("wait"):
+                detect_text(document.pk)
+            else:
+                detect_text.delay(document.pk)

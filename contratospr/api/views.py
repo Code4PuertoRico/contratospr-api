@@ -173,6 +173,7 @@ class HomePageView(CachedAPIViewMixin, APIView):
             .filter(
                 effective_date_from__gte=start_date, effective_date_from__lte=end_date
             )
+            .defer("document__pages")
         )
 
         contracts_total = contracts.aggregate(total=Sum("amount_to_pay"))["total"]

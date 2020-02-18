@@ -105,27 +105,19 @@ def download_document(document_id):
 
 
 @app.task
-def generate_preview(document_id):
+def detect_text(document_id):
+    logger.info("Detecting document text", document_id=document_id)
     document = Document.objects.get(pk=document_id)
 
-    # Try to generate preview with FilePreviews
-    document.generate_preview()
-
-    return document
-
-
-@app.task
-def detect_text(document_id, modes=None):
-    # Use Cloud Vision API if no text was extracted with FilePreviews
-    document = Document.objects.get(pk=document_id)
-
-    document.detect_text(modes=modes)
+    document.detect_text()
 
     for contract in document.contract_set.all():
+        logger.info(
+            "Indexing document contracts",
+            document_id=document_id,
+            contract_id=contract.pk,
+        )
         index_contract(contract)
-
-    if modes is None and not document.pages:
-        generate_preview.delay(document_id)
 
     return document
 

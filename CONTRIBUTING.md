@@ -93,7 +93,6 @@ Alternatively you can execute the following steps to setup the project as well:
 - Install pipenv: `pip install pipenv`
 - Install dependencies: `pipenv install --dev`
 - Install pre-commit hooks: `pipenv run pre-commit install`
-- Setup environment file: `cp example.env .env`
 - Install docker-compose: https://docs.docker.com/compose/install/
 - [Download latest database dump](docs/database-dump.md#using-latest-dump-for-development)
 - Build and start containers, including test container: `docker-compose up --build -d`
