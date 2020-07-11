@@ -22,13 +22,5 @@ jobs:
 
     steps:
       - uses: actions/checkout@v1
-      - name: Set up Python 3.7
-        uses: actions/setup-python@v1
-        with:
-          python-version: 3.7
-      - name: Install Pipenv
-        run: pip install pipenv
-      - name: Install dependencies
-        run: pipenv install --dev
-      - name: Test with pytest
-        run: pipenv run python runtests.py
+      - name: Run tests
+        run: docker-compose run test
