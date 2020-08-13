@@ -201,10 +201,6 @@ class Development(Common):
 
     CACHES = {"default": {"BACKEND": "django.core.cache.backends.dummy.DummyCache"}}
 
-    AWS_ACCESS_KEY_ID = ""
-    AWS_SECRET_ACCESS_KEY = ""
-    AWS_S3_BUCKET_NAME = "pdfs.contratospr.com"
-
 
 class Production(Common):
     """
@@ -248,10 +244,9 @@ class Testing(Common):
     CELERY_TASK_EAGER_PROPAGATES = True
 
     SECRET_KEY = "dont-tell-eve"
-
     AWS_ACCESS_KEY_ID = ""
+    AWS_S3_BUCKET_NAME = ""
     AWS_SECRET_ACCESS_KEY = ""
-    AWS_S3_BUCKET_NAME = "pdfs.contratospr.com"
 
 
 structlog.configure(
