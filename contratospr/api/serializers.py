@@ -24,7 +24,7 @@ class RecursiveSerializer(serializers.Serializer):
 
 class HomeSerializer(serializers.Serializer):
     fiscal_year = serializers.ChoiceField(
-        choices=FISCAL_YEAR_CHOICES, allow_null=False, initial=CURRENT_FISCAL_YEAR - 1,
+        choices=FISCAL_YEAR_CHOICES, allow_null=False, initial=CURRENT_FISCAL_YEAR - 1
     )
 
 
