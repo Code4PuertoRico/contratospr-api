@@ -10,6 +10,12 @@ from ..contracts.models import (
 )
 from ..contracts.utils import get_current_fiscal_year
 
+INITIAL_FISCAL_YEAR = 2016
+CURRENT_FISCAL_YEAR = get_current_fiscal_year()
+FISCAL_YEAR_CHOICES = [
+    (year, str(year)) for year in range(INITIAL_FISCAL_YEAR, CURRENT_FISCAL_YEAR)
+]
+
 
 class RecursiveSerializer(serializers.Serializer):
     def to_native(self, value):
@@ -18,9 +24,7 @@ class RecursiveSerializer(serializers.Serializer):
 
 class HomeSerializer(serializers.Serializer):
     fiscal_year = serializers.ChoiceField(
-        choices=[(2016, "2016"), (2017, "2017"), (2018, "2018"), (2019, "2019")],
-        allow_null=False,
-        initial=get_current_fiscal_year() - 1,
+        choices=FISCAL_YEAR_CHOICES, allow_null=False, initial=CURRENT_FISCAL_YEAR - 1,
     )
 
 
