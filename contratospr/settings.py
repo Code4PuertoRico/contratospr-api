@@ -199,9 +199,7 @@ class Development(Common):
 
     INTERNAL_IPS = ["127.0.0.1"]
 
-    AWS_ACCESS_KEY_ID = ""
     AWS_S3_BUCKET_NAME = "pdfs.contratospr.com"
-    AWS_SECRET_ACCESS_KEY = ""
 
     @property
     def CACHES(self):
