@@ -199,7 +199,19 @@ class Development(Common):
 
     INTERNAL_IPS = ["127.0.0.1"]
 
-    CACHES = {"default": {"BACKEND": "django.core.cache.backends.dummy.DummyCache"}}
+    AWS_ACCESS_KEY_ID = ""
+    AWS_S3_BUCKET_NAME = "pdfs.contratospr.com"
+    AWS_SECRET_ACCESS_KEY = ""
+
+    @property
+    def CACHES(self):
+        return {
+            "default": {
+                "BACKEND": "django_redis.cache.RedisCache",
+                "LOCATION": f"{self.REDIS_URL}/1",
+                "OPTIONS": {"CLIENT_CLASS": "django_redis.client.DefaultClient"},
+            }
+        }
 
 
 class Production(Common):
@@ -245,7 +257,7 @@ class Testing(Common):
 
     SECRET_KEY = "dont-tell-eve"
     AWS_ACCESS_KEY_ID = ""
-    AWS_S3_BUCKET_NAME = ""
+    AWS_S3_BUCKET_NAME = "pdfs.contratospr.com"
     AWS_SECRET_ACCESS_KEY = ""
 
 
