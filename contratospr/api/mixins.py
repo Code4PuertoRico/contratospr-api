@@ -13,6 +13,15 @@ def get_cache_key(request):
     return f"{CACHE_PREFIX}.{request_hash.hexdigest()}"
 
 
+def cache_response(response, cache_key):
+    """
+    Note: It's important to return `None` here to avoid
+    changing return value of .render()
+    """
+    cache.set(cache_key, response, settings.API_CACHE_TIMEOUT)
+    return None
+
+
 class CachedAPIViewMixin:
     def dispatch(self, request, *args, **kwargs):
         cache_key = get_cache_key(request)
@@ -23,12 +32,6 @@ class CachedAPIViewMixin:
         response = super().dispatch(request, *args, **kwargs)
 
         if response.status_code == 200:
-            response.add_post_render_callback(
-                lambda r: self._cache_response(r, cache_key)
-            )
+            response.add_post_render_callback(lambda r: cache_response(r, cache_key))
 
         return response
-
-    def _cache_response(self, response, cache_key):
-        cache.set(cache_key, response, settings.API_CACHE_TIMEOUT)
-        return None
