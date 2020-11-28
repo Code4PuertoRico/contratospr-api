@@ -199,6 +199,8 @@ class Development(Common):
 
     INTERNAL_IPS = ["127.0.0.1"]
 
+    AWS_S3_BUCKET_NAME = "pdfs.contratospr.com"
+
     CACHES = {"default": {"BACKEND": "django.core.cache.backends.dummy.DummyCache"}}
 
 
@@ -245,7 +247,7 @@ class Testing(Common):
 
     SECRET_KEY = "dont-tell-eve"
     AWS_ACCESS_KEY_ID = ""
-    AWS_S3_BUCKET_NAME = ""
+    AWS_S3_BUCKET_NAME = "pdfs.contratospr.com"
     AWS_SECRET_ACCESS_KEY = ""
 
 

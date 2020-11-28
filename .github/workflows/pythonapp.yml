@@ -31,4 +31,4 @@ jobs:
       - name: Install dependencies
         run: pipenv install --dev
       - name: Test with pytest
-        run: pipenv run python runtests.py
+        run: pipenv run python runtests.py --nolint
