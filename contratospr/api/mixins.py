@@ -1,4 +1,5 @@
 import hashlib
+
 from django.conf import settings
 from django.core.cache import cache
 from django.utils.encoding import iri_to_uri
