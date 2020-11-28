@@ -201,15 +201,7 @@ class Development(Common):
 
     AWS_S3_BUCKET_NAME = "pdfs.contratospr.com"
 
-    @property
-    def CACHES(self):
-        return {
-            "default": {
-                "BACKEND": "django_redis.cache.RedisCache",
-                "LOCATION": f"{self.REDIS_URL}/1",
-                "OPTIONS": {"CLIENT_CLASS": "django_redis.client.DefaultClient"},
-            }
-        }
+    CACHES = {"default": {"BACKEND": "django.core.cache.backends.dummy.DummyCache"}}
 
 
 class Production(Common):
