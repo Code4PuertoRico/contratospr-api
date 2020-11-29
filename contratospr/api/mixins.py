@@ -5,13 +5,20 @@ from django.core.cache import cache
 from django.utils.encoding import iri_to_uri
 
 CACHE_PREFIX = "views.cache"
+CACHE_HEADER_LIST = ["Accept", "Content-Type"]
 
 
 def get_cache_key(request):
+    headers_hash = hashlib.md5()
+    for header in CACHE_HEADER_LIST:
+        value = request.headers.get(header)
+        if value is not None:
+            headers_hash.update(value.encode())
+
     uri = iri_to_uri(request.build_absolute_uri())
     hash_key = f"{request.method}.{uri}"
-    request_hash = hashlib.md5(hash_key.encode("ascii"))
-    return f"{CACHE_PREFIX}.{request_hash.hexdigest()}"
+    request_hash = hashlib.md5(hash_key.encode())
+    return f"{CACHE_PREFIX}.{headers_hash.hexdigest()}.{request_hash.hexdigest()}"
 
 
 def cache_response(response, cache_key):
