@@ -5,6 +5,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from ..contracts.models import (
+    CollectionJob,
     Contract,
     Contractor,
     Document,
@@ -25,12 +26,14 @@ from .filters import (
 from .mixins import CachedAPIViewMixin
 from .schemas import CustomAutoSchema
 from .serializers import (
+    CollectionJobSerializer,
     ContractorSerializer,
     ContractSerializer,
     DocumentSerializer,
     EntitySerializer,
     ServiceGroupSerializer,
     ServiceSerializer,
+    SimpleCollectionJobSerializer,
 )
 
 
@@ -167,3 +170,14 @@ class ServiceViewSet(CachedReadOnlyModelViewSet):
     ordering_fields = ["name", "contracts_count", "contracts_total"]
     ordering = ["name"]
     lookup_field = "slug"
+
+
+class CollectionJobViewSet(CachedReadOnlyModelViewSet):
+    queryset = CollectionJob.objects.all()
+    serializer_class = SimpleCollectionJobSerializer
+
+    def get_serializer_class(self):
+        if self.action == "retrieve":
+            return CollectionJobSerializer
+
+        return super(CollectionJobViewSet, self).get_serializer_class()

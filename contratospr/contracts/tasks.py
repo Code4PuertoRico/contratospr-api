@@ -2,10 +2,19 @@ import datetime
 import re
 
 import pytz
+from celery import chain
 from structlog import get_logger
 
 from ..tasks import app
-from .models import Contract, Contractor, Document, Entity, Service, ServiceGroup
+from .models import (
+    CollectionJob,
+    Contract,
+    Contractor,
+    Document,
+    Entity,
+    Service,
+    ServiceGroup,
+)
 from .scraper import (
     BASE_CONTRACT_URL,
     get_amendments,
@@ -133,15 +142,22 @@ def update_contract(result, parent_id=None):
         "Updating contract", contract=result["contract_number"], parent_id=parent_id
     )
 
-    entity, _ = Entity.objects.get_or_create(
+    artifacts = []
+
+    entity, entity_created = Entity.objects.get_or_create(
         source_id=result["entity_id"], defaults={"name": result["entity_name"]}
     )
+    artifacts.append({"obj": entity, "created": entity_created})
 
-    service_group, _ = ServiceGroup.objects.get_or_create(name=result["service_group"])
+    service_group, service_group_created = ServiceGroup.objects.get_or_create(
+        name=result["service_group"]
+    )
+    artifacts.append({"obj": service_group, "created": service_group_created})
 
-    service, _ = Service.objects.get_or_create(
+    service, service_created = Service.objects.get_or_create(
         name=result["service"], group=service_group
     )
+    artifacts.append({"obj": service, "created": service_created})
 
     contract_data = {
         "entity": entity,
@@ -159,19 +175,25 @@ def update_contract(result, parent_id=None):
     }
 
     if result["document_id"]:
-        document, created = Document.objects.update_or_create(
+        document, document_created = Document.objects.update_or_create(
             source_id=result["document_id"],
             defaults={"source_url": result["document_url"]},
         )
 
+        if document_created:
+            chain(download_document.si(document.pk), detect_text.si(document.pk))()
+
+        artifacts.append({"obj": document, "created": document_created})
+
         contract_data["document"] = document
 
-    contract, _ = Contract.objects.update_or_create(
+    contract, contract_created = Contract.objects.update_or_create(
         source_id=result["contract_id"], defaults=contract_data
     )
+    artifacts.append({"obj": contract, "created": contract_created})
 
     for contractor_result in result["contractors"]:
-        contractor, _ = Contractor.objects.get_or_create(
+        contractor, contractor_created = Contractor.objects.get_or_create(
             source_id=contractor_result["contractor_id"],
             defaults={
                 "name": contractor_result["name"],
@@ -179,14 +201,17 @@ def update_contract(result, parent_id=None):
             },
         )
 
+        artifacts.append({"obj": contractor, "created": contractor_created})
+
         contract.contractors.add(contractor)
 
     for amendment_result in result["amendments"]:
-        update_contract(amendment_result, parent_id=contract.pk)
+        amendment_artifacts = update_contract(amendment_result, parent_id=contract.pk)
+        artifacts.extend(amendment_artifacts)
 
     index_contract(contract)
 
-    return contract.pk
+    return artifacts
 
 
 @app.task
@@ -195,6 +220,10 @@ def scrape_contracts(limit=None, max_items=None, **kwargs):
     total_records = 0
     default_limit = 10
     real_limit = limit or default_limit
+    collection_job_id = kwargs.pop("collection_job_id", None)
+    collection_job = None
+    if collection_job_id:
+        collection_job = CollectionJob.objects.get(pk=collection_job_id)
 
     while offset <= total_records:
         logger.info(
@@ -212,6 +241,9 @@ def scrape_contracts(limit=None, max_items=None, **kwargs):
 
         for contract in contracts["data"]:
             expanded = expand_contract(contract)
-            update_contract(expanded)
+            results = update_contract(expanded)
+
+            if collection_job:
+                collection_job.create_artifacts(results)
 
         offset += real_limit
