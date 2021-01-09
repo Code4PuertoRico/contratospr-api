@@ -261,28 +261,13 @@ class CollectionArtifactSerializer(serializers.ModelSerializer):
         return {}
 
 
-class SimpleCollectionJobSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = CollectionJob
-        fields = [
-            "id",
-            "date_of_grant_start",
-            "date_of_grant_end",
-            "created_at",
-            "modified_at",
-        ]
-
-
 class CollectionJobSerializer(serializers.ModelSerializer):
-    artifacts = CollectionArtifactSerializer(many=True)
-
     class Meta:
         model = CollectionJob
         fields = [
             "id",
             "date_of_grant_start",
             "date_of_grant_end",
-            "artifacts",
             "created_at",
             "modified_at",
         ]
