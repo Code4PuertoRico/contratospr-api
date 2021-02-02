@@ -1,8 +1,9 @@
-import datetime
 import re
+from datetime import date, datetime
 
 import pytz
 from celery import chain
+from dateutil.relativedelta import relativedelta
 from structlog import get_logger
 
 from ..tasks import app
@@ -32,7 +33,7 @@ def parse_date(value):
         return None
 
     ms = int(re.search(r"\d+", value).group())
-    return datetime.datetime.utcfromtimestamp(ms // 1000).replace(tzinfo=pytz.UTC)
+    return datetime.utcfromtimestamp(ms // 1000).replace(tzinfo=pytz.UTC)
 
 
 def strip_whitespace(value):
@@ -247,3 +248,29 @@ def scrape_contracts(limit=None, max_items=None, **kwargs):
                 collection_job.create_artifacts(results)
 
         offset += real_limit
+
+
+@app.task
+def collect_data(date_of_grant_start=None, date_of_grant_end=None):
+    now = datetime.utcnow()
+
+    if isinstance(date_of_grant_start, str):
+        date_of_grant_start = date.fromisoformat(date_of_grant_start)
+    else:
+        date_of_grant_start = now + relativedelta(
+            months=-1, day=1, hour=0, minute=0, second=0, microsecond=0
+        )
+
+    if isinstance(date_of_grant_end, str):
+        date_of_grant_end = date.fromisoformat(date_of_grant_end)
+    else:
+        date_of_grant_end = (
+            now
+            + relativedelta(months=-1, day=1, hour=0, minute=0, second=0, microsecond=0)
+            + relativedelta(months=+1, days=-1)
+        )
+
+    job = CollectionJob.objects.create(
+        date_of_grant_start=date_of_grant_start, date_of_grant_end=date_of_grant_end
+    )
+    job.process()
