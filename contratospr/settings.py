@@ -199,11 +199,9 @@ class Development(Common):
 
     INTERNAL_IPS = ["127.0.0.1"]
 
-    CACHES = {"default": {"BACKEND": "django.core.cache.backends.dummy.DummyCache"}}
-
-    AWS_ACCESS_KEY_ID = ""
-    AWS_SECRET_ACCESS_KEY = ""
     AWS_S3_BUCKET_NAME = "pdfs.contratospr.com"
+
+    CACHES = {"default": {"BACKEND": "django.core.cache.backends.dummy.DummyCache"}}
 
 
 class Production(Common):
@@ -248,10 +246,9 @@ class Testing(Common):
     CELERY_TASK_EAGER_PROPAGATES = True
 
     SECRET_KEY = "dont-tell-eve"
-
     AWS_ACCESS_KEY_ID = ""
-    AWS_SECRET_ACCESS_KEY = ""
     AWS_S3_BUCKET_NAME = "pdfs.contratospr.com"
+    AWS_SECRET_ACCESS_KEY = ""
 
 
 structlog.configure(

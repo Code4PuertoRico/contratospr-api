@@ -1,7 +1,16 @@
 from django.contrib import admin
 from django.db.models import Q
 
-from .models import Contract, Contractor, Document, Entity, Service, ServiceGroup
+from .models import (
+    CollectionArtifact,
+    CollectionJob,
+    Contract,
+    Contractor,
+    Document,
+    Entity,
+    Service,
+    ServiceGroup,
+)
 
 
 class DocumentFileListFilter(admin.SimpleListFilter):
@@ -105,3 +114,13 @@ class ServiceAdmin(admin.ModelAdmin):
 class ServiceGroupAdmin(admin.ModelAdmin):
     list_display = ["name", "slug", "created_at", "modified_at"]
     search_fields = ["name"]
+
+
+@admin.register(CollectionJob)
+class CollectionJobAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(CollectionArtifact)
+class CollectionArtifactAdmin(admin.ModelAdmin):
+    list_display = ["object_repr", "collection_job", "created"]

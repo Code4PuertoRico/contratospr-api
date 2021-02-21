@@ -1,10 +1,13 @@
+from django.contrib.contenttypes.models import ContentType
 from django.db.models import Count, Sum
 from django.db.models.functions import TruncMonth
+from django.shortcuts import get_object_or_404
 from rest_framework import filters, mixins, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from ..contracts.models import (
+    CollectionJob,
     Contract,
     Contractor,
     Document,
@@ -23,8 +26,11 @@ from .filters import (
     SimpleDjangoFilterBackend,
 )
 from .mixins import CachedAPIViewMixin
+from .pagination import PageNumberPagination
 from .schemas import CustomAutoSchema
 from .serializers import (
+    CollectionArtifactSerializer,
+    CollectionJobSerializer,
     ContractorSerializer,
     ContractSerializer,
     DocumentSerializer,
@@ -167,3 +173,25 @@ class ServiceViewSet(CachedReadOnlyModelViewSet):
     ordering_fields = ["name", "contracts_count", "contracts_total"]
     ordering = ["name"]
     lookup_field = "slug"
+
+
+class CollectionJobViewSet(CachedReadOnlyModelViewSet):
+    queryset = CollectionJob.objects.all()
+    serializer_class = CollectionJobSerializer
+
+    @action(detail=True, methods=["get"])
+    def artifacts(self, request, pk=None):
+        collection_job = self.get_object()
+        queryset = collection_job.artifacts.all()
+        model_type = request.query_params.get("type")
+
+        if model_type:
+            artifact_type = get_object_or_404(
+                ContentType, app_label="contracts", model=model_type
+            )
+            queryset = collection_job.artifacts.filter(content_type=artifact_type)
+
+        paginator = PageNumberPagination()
+        page = paginator.paginate_queryset(queryset, self.request, view=self)
+        serializer = CollectionArtifactSerializer(page, many=True)
+        return paginator.get_paginated_response(serializer.data)
