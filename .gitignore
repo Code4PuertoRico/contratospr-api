@@ -98,3 +98,4 @@ node_modules
 
 docker/postgres/backup.dump
 data/contracts.jsonl.gz
+celerybeat-schedule

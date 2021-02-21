@@ -5,6 +5,7 @@ from rest_framework.schemas import get_schema_view
 
 from .views import HomePageView, TrendsGeneralView, TrendsServicesView
 from .viewsets import (
+    CollectionJobViewSet,
     ContractorViewSet,
     ContractViewSet,
     DocumentViewSet,
@@ -24,6 +25,7 @@ router.register(r"contractors", ContractorViewSet)
 router.register(r"entities", EntityViewSet)
 router.register(r"service-groups", ServiceGroupViewSet)
 router.register(r"services", ServiceViewSet)
+router.register(r"collection-jobs", CollectionJobViewSet)
 
 urlpatterns = [
     path("v1/", include((router.urls, "api"), namespace="v1")),

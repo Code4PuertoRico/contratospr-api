@@ -3,11 +3,14 @@ from tempfile import TemporaryFile
 
 import requests
 from django.conf import settings
-from django.contrib.postgres.fields import JSONField
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.indexes import GinIndex
 from django.contrib.postgres.search import SearchVectorField
+from django.core import serializers
 from django.core.files import File
 from django.db import models
+from django.db.models import JSONField
 from django.utils.module_loading import import_string
 from django_extensions.db.fields import AutoSlugField
 
@@ -141,3 +144,71 @@ class Contract(BaseModel):
             return f"{self.number} - {self.amendment}"
 
         return f"{self.number}"
+
+
+class CollectionArtifact(BaseModel):
+    collection_job = models.ForeignKey(
+        "CollectionJob", on_delete=models.CASCADE, related_name="artifacts"
+    )
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    content_object = GenericForeignKey("content_type", "object_id")
+    serialized_data = models.TextField()
+    object_repr = models.TextField()
+    created = models.BooleanField()
+
+    def __str__(self):
+        return self.object_repr
+
+
+class CollectionJob(BaseModel):
+    date_of_grant_start = models.DateField()
+    date_of_grant_end = models.DateField()
+
+    def __str__(self):
+        date_of_grant_start = self.date_of_grant_start.strftime("%d/%m/%Y")
+        date_of_grant_end = self.date_of_grant_end.strftime("%d/%m/%Y")
+        return f"Collection #{self.pk} ({date_of_grant_start} - {date_of_grant_end})"
+
+    def process(self):
+        from .tasks import scrape_contracts
+
+        scrape_contracts.delay(
+            limit=None,
+            max_items=None,
+            date_of_grant_start=self.date_of_grant_start.strftime("%d/%m/%Y"),
+            date_of_grant_end=self.date_of_grant_end.strftime("%d/%m/%Y"),
+            collection_job_id=self.pk,
+        )
+
+    def create_artifacts(self, results):
+        options = {
+            "Document": {"exclude": ["pages"]},
+            "Contract": {"exclude": ["search_vector"]},
+        }
+
+        for result in results:
+            model = result["obj"]
+            content_type = ContentType.objects.get_for_model(model)
+            opt = options.get(model._meta.object_name)
+            fields = []
+
+            for field in model._meta.get_fields():
+                if opt:
+                    if field.name not in opt.get("exclude"):
+                        fields.append(field.name)
+                else:
+                    fields.append(field.name)
+
+            serialized_data = serializers.serialize("json", [model], fields=fields)
+
+            CollectionArtifact.objects.get_or_create(
+                collection_job=self,
+                content_type=content_type,
+                object_id=model.pk,
+                defaults={
+                    "serialized_data": serialized_data,
+                    "object_repr": str(model),
+                    "created": result["created"],
+                },
+            )

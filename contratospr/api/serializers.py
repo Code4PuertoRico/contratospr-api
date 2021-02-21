@@ -1,6 +1,9 @@
+from django.core import serializers as django_serializers
 from rest_framework import serializers
 
 from ..contracts.models import (
+    CollectionArtifact,
+    CollectionJob,
     Contract,
     Contractor,
     Document,
@@ -189,3 +192,82 @@ class ParentContractSerializer(BaseContractSerializer):
 class ContractSerializer(BaseContractSerializer):
     parent = ParentContractSerializer()
     amendments = SimpleContractSerializer(many=True)
+
+
+class CollectionArtifactContractSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Contract
+        exclude = ["contractors"]
+
+
+class CollectionArtifactEntitySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Entity
+        fields = "__all__"
+
+
+class CollectionArtifactServiceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Service
+        fields = "__all__"
+
+
+class CollectionArtifactServiceGroupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ServiceGroup
+        fields = "__all__"
+
+
+class CollectionArtifactContractorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Contractor
+        fields = "__all__"
+
+
+class CollectionArtifactDocumentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Document
+        fields = "__all__"
+
+
+class CollectionArtifactSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CollectionArtifact
+        fields = "__all__"
+
+    def to_representation(self, instance):
+        artifact_serializers = {
+            "Contract": CollectionArtifactContractSerializer,
+            "Entity": CollectionArtifactEntitySerializer,
+            "Service": CollectionArtifactServiceSerializer,
+            "ServiceGroup": CollectionArtifactServiceGroupSerializer,
+            "Contractor": CollectionArtifactContractorSerializer,
+            "Document": CollectionArtifactDocumentSerializer,
+        }
+        for deserialized_object in django_serializers.deserialize(
+            "json", instance.serialized_data
+        ):
+            model = deserialized_object.object
+            artifact_serializer = artifact_serializers.get(model._meta.object_name)
+
+            if artifact_serializer:
+                serializer = artifact_serializer(model)
+                return {
+                    "type": model._meta.model_name,
+                    "created": instance.created,
+                    "data": serializer.data,
+                }
+
+        return {}
+
+
+class CollectionJobSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CollectionJob
+        fields = [
+            "id",
+            "date_of_grant_start",
+            "date_of_grant_end",
+            "created_at",
+            "modified_at",
+        ]
