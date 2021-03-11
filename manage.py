@@ -7,6 +7,9 @@ if __name__ == "__main__":
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "contratospr.settings")
     os.environ.setdefault("DJANGO_CONFIGURATION", configuration)
 
+    if sys.version_info.major == 3 and sys.version_info.mior >= 7:
+        Exception("Python version >= 3.7 is required")
+
     try:
         from configurations.management import execute_from_command_line
     except ImportError as exc:
