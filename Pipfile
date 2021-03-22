@@ -34,9 +34,10 @@ celery = {extras = ["redis"],version = "==5.0.4"}
 structlog = "==20.1.0"
 uritemplate = "==3.0.1"
 pyyaml = "==5.3.1"
+docker-compose = "*"
 
 [requires]
-python_version = "3.7"
+python_version = "3"
 
 [pipenv]
 allow_prereleases = true

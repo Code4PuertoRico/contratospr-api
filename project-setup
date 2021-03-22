@@ -50,7 +50,9 @@ if ! [ -x "$(command -v python3.7)" ] || ! [ -x "$(command -v python3)" ]; then
     else
         python_version=`python -c 'import sys; version=sys.version_info[:3]; print("{0}.{1}".format(*version))'`
 
-        if [ $python_version != "3.7" ] ; then
+	python_version_req=3.7
+	echo "Version $python_version supported $python_version_req"
+	if [ "$(printf "%s\n" "$python_version" "$python_version_req" | sort -V | head -n1 )" != $python_version_req ] ; then
             echo "Please install Python version 3.7.2 or greater"
             exit 1
         fi
