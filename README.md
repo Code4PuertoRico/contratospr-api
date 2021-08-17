@@ -1,6 +1,6 @@
 # Tracking Contratos PR
 
-![](https://github.com/code4puertorico/contratospr-api/workflows/Build%20and%20test%20ContratosPR%20API/badge.svg)
+![](https://github.com/code4puertorico/contratospr-api/workflows/Build%20and%20test%20ContratosPR%20API/badge.svg) [![Open in Visual Studio Code](https://open.vscode.dev/badges/open-in-vscode.svg)](https://open.vscode.dev/Code4PuertoRico/contratospr-api)
 
 Web application to gather, display and make searchable contracts from the ["Consulta del Registro de Contratos"](https://consultacontratos.ocpr.gov.pr/) to enable independent research and analysis.
 
