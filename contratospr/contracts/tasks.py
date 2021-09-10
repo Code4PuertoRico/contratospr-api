@@ -65,7 +65,7 @@ def normalize_contract(contract):
         document_id = result["document_id"]
         result[
             "document_url"
-        ] = f"{BASE_CONTRACT_URL}/downloaddocument?documentid={document_id}"
+        ] = f"{BASE_CONTRACT_URL}/downloaddocument?code={document_id}"
 
     return result
 

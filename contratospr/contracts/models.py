@@ -68,7 +68,7 @@ class Service(BaseModel):
 
 
 class Document(BaseModel):
-    source_id = models.PositiveIntegerField(unique=True)
+    source_id = models.CharField(max_length=255, unique=True)
     source_url = models.URLField()
     file = models.FileField(
         blank=True, null=True, upload_to=document_file_path, storage=document_storage

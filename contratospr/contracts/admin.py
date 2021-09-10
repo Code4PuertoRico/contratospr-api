@@ -68,6 +68,15 @@ class ContractorAdmin(admin.ModelAdmin):
     search_fields = ["name", "source_id"]
 
 
+class ContractInline(admin.StackedInline):
+    model = Contract
+    exclude = ["search_vector"]
+    raw_id_fields = ["entity", "service", "document", "contractors", "parent"]
+    can_delete = False
+    extra = 0
+    max_num = 1
+
+
 @admin.register(Document)
 class DocumentAdmin(admin.ModelAdmin):
     list_display = ["source_id", "file", "has_text", "created_at", "modified_at"]
@@ -75,6 +84,7 @@ class DocumentAdmin(admin.ModelAdmin):
     search_fields = ["source_id"]
     actions = ["download_source", "detect_text"]
     list_filter = [DocumentFileListFilter]
+    inlines = [ContractInline]
 
     def has_text(self, obj):
         return bool(obj.pages)
