@@ -78,7 +78,9 @@ def normalize_contractors(contractors):
             {
                 "contractor_id": contractor["ContractorId"],
                 "entity_id": contractor["EntityId"],
-                "name": contractor["Name"],
+                "name": contractor["Name"]
+                or contractor["ConfirmedName1"]
+                or contractor["ConfirmedName2"],
             }
         )
 
@@ -195,7 +197,7 @@ def update_contract(result, parent_id=None):
 
     for contractor_result in result["contractors"]:
         contractor, contractor_created = Contractor.objects.get_or_create(
-            source_id=contractor_result["contractor_id"],
+            source_id=contractor_result["contractor_id"] or contract.source_id,
             defaults={
                 "name": contractor_result["name"],
                 "entity_id": contractor_result["entity_id"],
