@@ -1,4 +1,4 @@
-from django.core.cache import cache
+from django.core.cache import caches
 from django.core.management.base import BaseCommand
 
 from ...models import Contract
@@ -12,6 +12,11 @@ class Command(BaseCommand):
         parser.add_argument("--limit", nargs="?", type=int, default=1000)
 
     def handle(self, *args, **options):
+        try:
+            cache = caches["aux"]
+        except Exception:
+            cache = caches["default"]
+
         limit = options.get("limit")
 
         contracts = (

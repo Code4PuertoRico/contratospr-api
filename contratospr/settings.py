@@ -151,6 +151,7 @@ class Common(Configuration):
     AUTH_USER_MODEL = "users.User"
 
     REDIS_URL = values.Value(environ_prefix=None)
+    AUX_REDIS_URL = values.Value(environ_prefix=None)
 
     DEBUG_TOOLBAR_CONFIG = {
         "SHOW_TOOLBAR_CALLBACK": "contratospr.utils.debug_toolbar.show_toolbar"
@@ -229,13 +230,22 @@ class Production(Common):
 
     @property
     def CACHES(self):
-        return {
+        caches = {
             "default": {
                 "BACKEND": "django_redis.cache.RedisCache",
                 "LOCATION": f"{self.REDIS_URL}/1",
                 "OPTIONS": {"CLIENT_CLASS": "django_redis.client.DefaultClient"},
             }
         }
+
+        if self.AUX_REDIS_URL:
+            caches["aux"] = {
+                "BACKEND": "django_redis.cache.RedisCache",
+                "LOCATION": f"{self.AUX_REDIS_URL}/1",
+                "OPTIONS": {"CLIENT_CLASS": "django_redis.client.DefaultClient"},
+            }
+
+        return caches
 
 
 class Testing(Common):
