@@ -39,7 +39,11 @@ class Command(BaseCommand):
                 last_contract_id = c.pk
 
                 self.stdout.write(f"=> Scraping contract {c.pk} / {c.number}")
-                scrape_contracts(contract_number=c.number, entity_id=c.entity.source_id)
+                scrape_contracts(
+                    skip_doc_tasks=True,
+                    contract_number=c.number,
+                    entity_id=c.entity.source_id,
+                )
 
                 self.stdout.write("=> Last contract {}".format(last_contract_id))
                 cache.set(cache_key, last_contract_id)
