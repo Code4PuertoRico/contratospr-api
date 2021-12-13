@@ -51,7 +51,7 @@ class Command(BaseCommand):
                 )
 
                 self.stdout.write("=> Last contract {}".format(last_contract_id))
-                cache.set(cache_key, last_contract_id)
+                cache.set(cache_key, last_contract_id, timeout=None)
             else:
                 self.stdout.write(
                     "=> Nothing found offset={} / limit={} / last_contract_id={}".format(
