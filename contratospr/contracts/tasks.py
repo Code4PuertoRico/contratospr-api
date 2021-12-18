@@ -173,7 +173,7 @@ def update_contract(result, parent_id=None, skip_doc_tasks=False):
         "cancellation_date": result["cancellation_date"],
         "amount_to_pay": result["amount_to_pay"],
         "has_amendments": result["has_amendments"],
-        "exempt_id": result["exempt_id"],
+        "exempt_id": result["exempt_id"] or "",
         "parent_id": parent_id,
     }
 

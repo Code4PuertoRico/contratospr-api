@@ -126,7 +126,7 @@ class Contract(BaseModel):
     amount_to_pay = models.DecimalField(max_digits=20, decimal_places=2)
     has_amendments = models.BooleanField()
     document = models.ForeignKey("Document", null=True, on_delete=models.SET_NULL)
-    exempt_id = models.CharField(max_length=255)
+    exempt_id = models.CharField(max_length=255, blank=True)
     contractors = models.ManyToManyField("Contractor")
     parent = models.ForeignKey(
         "self", null=True, on_delete=models.CASCADE, related_name="amendments"
