@@ -65,7 +65,7 @@ def normalize_contract(contract):
         document_id = result["document_id"]
         result[
             "document_url"
-        ] = f"{BASE_CONTRACT_URL}/downloaddocument?documentid={document_id}"
+        ] = f"{BASE_CONTRACT_URL}/downloaddocument?code={document_id}"
 
     return result
 
@@ -78,7 +78,9 @@ def normalize_contractors(contractors):
             {
                 "contractor_id": contractor["ContractorId"],
                 "entity_id": contractor["EntityId"],
-                "name": contractor["Name"],
+                "name": contractor["Name"]
+                or contractor["ConfirmedName1"]
+                or contractor["ConfirmedName2"],
             }
         )
 
@@ -138,7 +140,7 @@ def request_contract_document(contract_id):
 
 
 @app.task
-def update_contract(result, parent_id=None):
+def update_contract(result, parent_id=None, skip_doc_tasks=False):
     logger.info(
         "Updating contract", contract=result["contract_number"], parent_id=parent_id
     )
@@ -171,7 +173,7 @@ def update_contract(result, parent_id=None):
         "cancellation_date": result["cancellation_date"],
         "amount_to_pay": result["amount_to_pay"],
         "has_amendments": result["has_amendments"],
-        "exempt_id": result["exempt_id"],
+        "exempt_id": result["exempt_id"] or "",
         "parent_id": parent_id,
     }
 
@@ -181,7 +183,7 @@ def update_contract(result, parent_id=None):
             defaults={"source_url": result["document_url"]},
         )
 
-        if document_created:
+        if document_created and skip_doc_tasks:
             chain(download_document.si(document.pk), detect_text.si(document.pk))()
 
         artifacts.append({"obj": document, "created": document_created})
@@ -195,7 +197,7 @@ def update_contract(result, parent_id=None):
 
     for contractor_result in result["contractors"]:
         contractor, contractor_created = Contractor.objects.get_or_create(
-            source_id=contractor_result["contractor_id"],
+            source_id=contractor_result["contractor_id"] or contract.source_id,
             defaults={
                 "name": contractor_result["name"],
                 "entity_id": contractor_result["entity_id"],
@@ -207,10 +209,13 @@ def update_contract(result, parent_id=None):
         contract.contractors.add(contractor)
 
     for amendment_result in result["amendments"]:
-        amendment_artifacts = update_contract(amendment_result, parent_id=contract.pk)
+        amendment_artifacts = update_contract(
+            amendment_result, parent_id=contract.pk, skip_doc_tasks=skip_doc_tasks
+        )
         artifacts.extend(amendment_artifacts)
 
-    index_contract(contract)
+    if not skip_doc_tasks:
+        index_contract(contract)
 
     return artifacts
 
@@ -221,6 +226,7 @@ def scrape_contracts(limit=None, max_items=None, **kwargs):
     total_records = 0
     default_limit = 10
     real_limit = limit or default_limit
+    skip_doc_tasks = kwargs.pop("skip_doc_tasks", False)
     collection_job_id = kwargs.pop("collection_job_id", None)
     collection_job = None
     if collection_job_id:
@@ -242,7 +248,7 @@ def scrape_contracts(limit=None, max_items=None, **kwargs):
 
         for contract in contracts["data"]:
             expanded = expand_contract(contract)
-            results = update_contract(expanded)
+            results = update_contract(expanded, skip_doc_tasks=skip_doc_tasks)
 
             if collection_job:
                 collection_job.create_artifacts(results)
